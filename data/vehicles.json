@@ -1,0 +1,2322 @@
+[
+  {
+    "vin": "1FM5K7F85GGC13495",
+    "runNumber": "A/1 • Clermont",
+    "year": "2016",
+    "make": "Ford",
+    "model": "Explorer",
+    "trim": "Limited",
+    "mileage": "122,872 mi",
+    "ymmt": "2016 Ford Explorer Limited",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.501Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "03/2024",
+      "accidentDamage": [],
+      "kbb": "$7,354",
+      "mmr": "$8,075"
+    },
+    "note": "3 - Own\n03/24\nk= $7,354\nm= $8,075",
+    "enrichedAt": "2025-06-29T15:55:04.299Z"
+  },
+  {
+    "vin": "5YFBURHEXHP601998",
+    "runNumber": "A/2 • Clermont",
+    "year": "2017",
+    "make": "Toyota",
+    "model": "Corolla",
+    "trim": "LE",
+    "mileage": "131,498 mi",
+    "ymmt": "2017 Toyota Corolla LE",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.501Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "06/2018",
+      "accidentDamage": [],
+      "kbb": "TRIM",
+      "mmr": "TRIM"
+    },
+    "note": "2 - Own\n06/18\nk= TRIM\nm= TRIM",
+    "enrichedAt": "2025-06-29T15:55:30.629Z"
+  },
+  {
+    "vin": "4T1G11AK7PU739138",
+    "runNumber": "A/3 • Clermont",
+    "year": "2023",
+    "make": "Toyota",
+    "model": "Camry",
+    "trim": "SE",
+    "mileage": "24,009 mi",
+    "ymmt": "2023 Toyota Camry SE",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.501Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "10/2022",
+      "accidentDamage": [],
+      "kbb": "TRIM",
+      "mmr": "$23,900"
+    },
+    "note": "1 - Own\n10/22\nk= TRIM\nm= $23,900",
+    "enrichedAt": "2025-06-29T15:55:56.904Z"
+  },
+  {
+    "vin": "JTDKB22U753045893",
+    "runNumber": "A/4 • Clermont",
+    "year": "2005",
+    "make": "Toyota",
+    "model": "Prius",
+    "trim": "Base",
+    "mileage": "118,535 mi",
+    "ymmt": "2005 Toyota Prius Base",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.501Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "02/2025",
+      "accidentDamage": [
+        [
+          "08/05/2008",
+          "Collision",
+          "Unknown"
+        ]
+      ],
+      "kbb": "$1,603",
+      "mmr": "$2,575"
+    },
+    "note": "3 - Own\n02/25\n08/05/2008 Collision Unknown\nk= $1,603\nm= $2,575",
+    "enrichedAt": "2025-06-29T15:56:23.234Z"
+  },
+  {
+    "vin": "3VWRX7AJ4AM131401",
+    "runNumber": "A/5 • Clermont",
+    "year": "2010",
+    "make": "Volkswagen",
+    "model": "Jetta",
+    "trim": "SEL",
+    "mileage": "101,312 mi",
+    "ymmt": "2010 Volkswagen Jetta SEL",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.501Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "01/2024",
+      "accidentDamage": [
+        [
+          "04/28/2012",
+          "Collision",
+          "Moderate"
+        ],
+        [
+          "08/03/2012",
+          "Collision",
+          "Moderate"
+        ],
+        [
+          "08/08/2013",
+          "Structural Damage",
+          "Severe"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "TRIM"
+    },
+    "note": "3 - Own\n01/24\n04/28/2012 Collision Moderate, 08/03/2012 Collision Moderate, 08/08/2013 Structural Damage Severe\nk= TRIM\nm= TRIM",
+    "enrichedAt": "2025-06-29T15:56:49.565Z"
+  },
+  {
+    "vin": "KNDJN2A28E7735972",
+    "runNumber": "A/6 • Clermont",
+    "year": "2014",
+    "make": "Kia",
+    "model": "Soul",
+    "trim": "Base",
+    "mileage": "101,956 mi",
+    "ymmt": "2014 Kia Soul Base",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.501Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "05/2015",
+      "accidentDamage": [
+        [
+          "08/03/2016",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$2,848",
+      "mmr": "$2,425"
+    },
+    "note": "2 - Own\n05/15\n08/03/2016 Collision Moderate\nk= $2,848\nm= $2,425",
+    "enrichedAt": "2025-06-29T15:57:15.926Z"
+  },
+  {
+    "vin": "3MZBN1L38HM156590",
+    "runNumber": "A/7 • Clermont",
+    "year": "2017",
+    "make": "Mazda",
+    "model": "Mazda3",
+    "trim": "Touring",
+    "mileage": "60,554 mi",
+    "ymmt": "2017 Mazda Mazda3 Touring",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.501Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "11/2017",
+      "accidentDamage": [
+        [
+          "02/26/2019",
+          "Collision",
+          "Moderate"
+        ],
+        [
+          "03/15/2020",
+          "Collision",
+          "Minor"
+        ],
+        [
+          "06/05/2020",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$11,898",
+      "mmr": "$11,900"
+    },
+    "note": "2 - Own\n11/17\n02/26/2019 Collision Moderate, 03/15/2020 Collision Minor, 06/05/2020 Collision Minor\nk= $11,898\nm= $11,900",
+    "enrichedAt": "2025-06-29T15:57:42.215Z"
+  },
+  {
+    "vin": "5TFAX5GN4KX144224",
+    "runNumber": "A/8 • Clermont",
+    "year": "2019",
+    "make": "Toyota",
+    "model": "Tacoma",
+    "trim": "SR",
+    "mileage": "35,299 mi",
+    "ymmt": "2019 Toyota Tacoma SR",
+    "auctionLocation": "Clermont, FL",
+    "auctionIndex": 1,
+    "scrapedAt": "2025-06-28T18:13:37.502Z",
+    "vautoData": {
+      "odometerCheck": "Odometer Issue Reported",
+      "owner": "1 - Own",
+      "ownerDateText": "06/2019",
+      "accidentDamage": [
+        [
+          "03/07/2022",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "$23,200"
+    },
+    "note": "Odometer Issue Reported\n1 - Own\n06/19\n03/07/2022 Collision Moderate\nk= TRIM\nm= $23,200",
+    "enrichedAt": "2025-06-29T15:58:08.528Z"
+  },
+  {
+    "vin": "JT8VK13T4P0154666",
+    "runNumber": "A/1 • Cleveland",
+    "year": "1993",
+    "make": "Lexus",
+    "model": "ES",
+    "trim": "300 Base",
+    "mileage": "126,613 mi",
+    "ymmt": "1993 Lexus ES 300 Base",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.407Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "03/1996",
+      "accidentDamage": [],
+      "kbb": "$1,169",
+      "mmr": "-"
+    },
+    "note": "1 - Own\n03/96\nk= $1,169\nm= -",
+    "enrichedAt": "2025-06-29T15:58:34.870Z"
+  },
+  {
+    "vin": "WAUW2CFC7FN036039",
+    "runNumber": "A/2 • Cleveland",
+    "year": "2015",
+    "make": "Audi",
+    "model": "S7",
+    "trim": "Base",
+    "mileage": "77,830 mi",
+    "ymmt": "2015 Audi S7 Base",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.407Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "12/2024",
+      "accidentDamage": [],
+      "kbb": "TRIM",
+      "mmr": "MODEL"
+    },
+    "note": "2 - Own\n12/24\nk= TRIM\nm= MODEL",
+    "enrichedAt": "2025-06-29T15:59:01.177Z"
+  },
+  {
+    "vin": "3FAHP0HA8CR105052",
+    "runNumber": "A/3 • Cleveland",
+    "year": "2012",
+    "make": "Ford",
+    "model": "Fusion",
+    "trim": "SE",
+    "mileage": "151,127 mi",
+    "ymmt": "2012 Ford Fusion SE",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.407Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "09/2024",
+      "accidentDamage": [],
+      "kbb": "$1,870",
+      "mmr": "$1,975"
+    },
+    "note": "2 - Own\n09/24\nk= $1,870\nm= $1,975",
+    "enrichedAt": "2025-06-29T15:59:27.550Z"
+  },
+  {
+    "vin": "KMHTC6AD4DU103697",
+    "runNumber": "A/4 • Cleveland",
+    "year": "2013",
+    "make": "Hyundai",
+    "model": "Veloster",
+    "trim": "Base",
+    "mileage": "81,329 mi",
+    "ymmt": "2013 Hyundai Veloster Base",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.408Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "04/2024",
+      "accidentDamage": [
+        [
+          "12/15/2022",
+          "Collision",
+          "Minor"
+        ],
+        [
+          "08/19/2023",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,771",
+      "mmr": "TRIM"
+    },
+    "note": "2 - Own\n04/24\n12/15/2022 Collision Minor, 08/19/2023 Collision Minor\nk= $2,771\nm= TRIM",
+    "enrichedAt": "2025-06-29T15:59:53.858Z"
+  },
+  {
+    "vin": "WVWBW8AH6DV008302",
+    "runNumber": "A/5 • Cleveland",
+    "year": "2013",
+    "make": "Volkswagen",
+    "model": "Eos",
+    "trim": "Komfort",
+    "mileage": "120,677 mi",
+    "ymmt": "2013 Volkswagen Eos Komfort",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.408Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "08/2023",
+      "accidentDamage": [
+        [
+          "10/03/2019",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "TRIM"
+    },
+    "note": "3 - Own\n08/23\n10/03/2019 Collision Minor\nk= TRIM\nm= TRIM",
+    "enrichedAt": "2025-06-29T16:00:20.238Z"
+  },
+  {
+    "vin": "WAUFFAFL2EA052681",
+    "runNumber": "A/6 • Cleveland",
+    "year": "2014",
+    "make": "Audi",
+    "model": "A4",
+    "trim": "Premium Plus",
+    "mileage": "114,087 mi",
+    "ymmt": "2014 Audi A4 Premium Plus",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.408Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "07/2014",
+      "accidentDamage": [],
+      "kbb": "$4,547",
+      "mmr": "$4,975"
+    },
+    "note": "1 - Own\n07/14\nk= $4,547\nm= $4,975",
+    "enrichedAt": "2025-06-29T16:00:46.602Z"
+  },
+  {
+    "vin": "JTNBE46K373035842",
+    "runNumber": "A/7 • Cleveland",
+    "year": "2007",
+    "make": "Toyota",
+    "model": "Camry",
+    "trim": "LE",
+    "mileage": "141,362 mi",
+    "ymmt": "2007 Toyota Camry LE",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.408Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "12/2010",
+      "accidentDamage": [
+        [
+          "12/03/2009",
+          "Collision",
+          "Minor-Moderate"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "TRIM"
+    },
+    "note": "2 - Own\n12/10\n12/03/2009 Collision Minor-Moderate\nk= TRIM\nm= TRIM",
+    "enrichedAt": "2025-06-29T16:01:12.963Z"
+  },
+  {
+    "vin": "1G4ZS5SS6HU187094",
+    "runNumber": "A/8 • Cleveland",
+    "year": "2017",
+    "make": "Buick",
+    "model": "LaCrosse",
+    "trim": "Premium",
+    "mileage": "63,395 mi",
+    "ymmt": "2017 Buick LaCrosse Premium",
+    "auctionLocation": "Cleveland, OH",
+    "auctionIndex": 2,
+    "scrapedAt": "2025-06-28T18:14:05.408Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "10/2018",
+      "accidentDamage": [
+        [
+          "10/28/2019",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$13,830",
+      "mmr": "$14,900"
+    },
+    "note": "2 - Own\n10/18\n10/28/2019 Collision Minor\nk= $13,830\nm= $14,900",
+    "enrichedAt": "2025-06-29T16:01:39.280Z"
+  },
+  {
+    "vin": "YV4940BZ6C1137883",
+    "runNumber": "A/1 • Hartford",
+    "year": "2012",
+    "make": "Volvo",
+    "model": "XC70",
+    "trim": "3.2",
+    "mileage": "151,150 mi",
+    "ymmt": "2012 Volvo XC70 3.2",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.062Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "08/2022",
+      "accidentDamage": [
+        [
+          "01/19/2016",
+          "Collision",
+          "Minor"
+        ],
+        [
+          "08/02/2021",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,692",
+      "mmr": "TRIM"
+    },
+    "note": "2 - Own\n08/22\n01/19/2016 Collision Minor, 08/02/2021 Collision Minor\nk= $2,692\nm= TRIM",
+    "enrichedAt": "2025-06-29T16:02:05.646Z"
+  },
+  {
+    "vin": "1FMCU0GD0HUB61846",
+    "runNumber": "A/2 • Hartford",
+    "year": "2017",
+    "make": "Ford",
+    "model": "Escape",
+    "trim": "SE",
+    "mileage": "62,751 mi",
+    "ymmt": "2017 Ford Escape SE",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.063Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "08/2019",
+      "accidentDamage": [
+        [
+          "05/23/2018",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$5,844",
+      "mmr": "$6,925"
+    },
+    "note": "3 - Own\n08/19\n05/23/2018 Collision Moderate\nk= $5,844\nm= $6,925",
+    "enrichedAt": "2025-06-29T16:02:31.992Z"
+  },
+  {
+    "vin": "3TYSZ5AN9NT083426",
+    "runNumber": "A/3 • Hartford",
+    "year": "2022",
+    "make": "Toyota",
+    "model": "Tacoma",
+    "trim": "SR",
+    "mileage": "37,150 mi",
+    "ymmt": "2022 Toyota Tacoma SR",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.063Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "07/2022",
+      "accidentDamage": [
+        [
+          "11/22/2024",
+          "Collision",
+          "Unknown"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "$26,800"
+    },
+    "note": "1 - Own\n07/22\n11/22/2024 Collision Unknown\nk= TRIM\nm= $26,800",
+    "enrichedAt": "2025-06-29T16:02:58.360Z"
+  },
+  {
+    "vin": "3D4GH67V29T234168",
+    "runNumber": "A/4 • Hartford",
+    "year": "2009",
+    "make": "Dodge",
+    "model": "Journey",
+    "trim": "R/T",
+    "mileage": "148,000 mi",
+    "ymmt": "2009 Dodge Journey R/T",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.063Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "01/2020",
+      "accidentDamage": [
+        [
+          "05/02/2012",
+          "Collision",
+          "Unknown"
+        ],
+        [
+          "01/07/2015",
+          "Collision",
+          "Unknown"
+        ],
+        [
+          "12/12/2015",
+          "Collision",
+          "Unknown"
+        ],
+        [
+          "12/19/2019",
+          "Structural Damage",
+          "Severe"
+        ],
+        [
+          "07/05/2022",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$986",
+      "mmr": "$1,475"
+    },
+    "note": "4 - Own\n01/20\n05/02/2012 Collision Unknown, 01/07/2015 Collision Unknown, 12/12/2015 Collision Unknown, 12/19/2019 Structural Damage Severe, 07/05/2022 Collision Minor\nk= $986\nm= $1,475",
+    "enrichedAt": "2025-06-29T16:03:24.815Z"
+  },
+  {
+    "vin": "JA4LZ31F84U001655",
+    "runNumber": "A/5 • Hartford",
+    "year": "2004",
+    "make": "Mitsubishi",
+    "model": "Outlander",
+    "trim": "LS",
+    "mileage": "114,204 mi",
+    "ymmt": "2004 Mitsubishi Outlander LS",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.063Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "10/2024",
+      "accidentDamage": [],
+      "kbb": "$1,797",
+      "mmr": "-"
+    },
+    "note": "4 - Own\n10/24\nk= $1,797\nm= -",
+    "enrichedAt": "2025-06-29T16:03:51.168Z"
+  },
+  {
+    "vin": "JM3TB3MV3A0223835",
+    "runNumber": "A/6 • Hartford",
+    "year": "2010",
+    "make": "Mazda",
+    "model": "CX-9",
+    "trim": "Touring",
+    "mileage": "141,416 mi",
+    "ymmt": "2010 Mazda CX-9 Touring",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.063Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "12/2022",
+      "accidentDamage": [
+        [
+          "02/20/2015",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,302",
+      "mmr": "$3,100"
+    },
+    "note": "3 - Own\n12/22\n02/20/2015 Collision Minor\nk= $2,302\nm= $3,100",
+    "enrichedAt": "2025-06-29T16:04:17.533Z"
+  },
+  {
+    "vin": "JN8AS5MVXDW630777",
+    "runNumber": "A/7 • Hartford",
+    "year": "2013",
+    "make": "Nissan",
+    "model": "Rogue",
+    "trim": "S",
+    "mileage": "101,290 mi",
+    "ymmt": "2013 Nissan Rogue S",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.063Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "07/2018",
+      "accidentDamage": [],
+      "kbb": "$2,325",
+      "mmr": "$2,200"
+    },
+    "note": "2 - Own\n07/18\nk= $2,325\nm= $2,200",
+    "enrichedAt": "2025-06-29T16:04:44.032Z"
+  },
+  {
+    "vin": "3MW5R7J09L8B38128",
+    "runNumber": "A/8 • Hartford",
+    "year": "2020",
+    "make": "BMW",
+    "model": "330",
+    "trim": "I xDrive",
+    "mileage": "45,847 mi",
+    "ymmt": "2020 BMW 330 I xDrive",
+    "auctionLocation": "Hartford, CT",
+    "auctionIndex": 3,
+    "scrapedAt": "2025-06-28T18:14:33.063Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "04/2024",
+      "accidentDamage": [
+        [
+          "05/07/2021",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$21,764",
+      "mmr": "$22,600"
+    },
+    "note": "3 - Own\n04/24\n05/07/2021 Collision Minor\nk= $21,764\nm= $22,600",
+    "enrichedAt": "2025-06-29T16:05:10.338Z"
+  },
+  {
+    "vin": "WAUDF78E17A184116",
+    "runNumber": "A/1 • Jacksonville",
+    "year": "2007",
+    "make": "Audi",
+    "model": "A4",
+    "trim": "2.0T",
+    "mileage": "141,626 mi",
+    "ymmt": "2007 Audi A4 2.0T",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.795Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 5",
+      "ownerDateText": "08/2020",
+      "accidentDamage": [],
+      "kbb": "$582",
+      "mmr": "$1,000"
+    },
+    "note": "5 - Own\n08/20\nk= $582\nm= $1,000",
+    "enrichedAt": "2025-06-29T16:05:36.699Z"
+  },
+  {
+    "vin": "WBAJA5C57KBX87507",
+    "runNumber": "A/2 • Jacksonville",
+    "year": "2019",
+    "make": "BMW",
+    "model": "530",
+    "trim": "I",
+    "mileage": "140,319 mi",
+    "ymmt": "2019 BMW 530 I",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.795Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "04/2023",
+      "accidentDamage": [],
+      "kbb": "$8,483",
+      "mmr": "$9,300"
+    },
+    "note": "3 - Own\n04/23\nk= $8,483\nm= $9,300",
+    "enrichedAt": "2025-06-29T16:06:03.104Z"
+  },
+  {
+    "vin": "JN1EV7AP0HM740750",
+    "runNumber": "A/3 • Jacksonville",
+    "year": "2017",
+    "make": "Infiniti",
+    "model": "Q50",
+    "trim": "Signature",
+    "mileage": "80,349 mi",
+    "ymmt": "2017 Infiniti Q50 Signature",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.796Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "06/2023",
+      "accidentDamage": [
+        [
+          "06/01/2023",
+          "Structural Damage",
+          "Severe"
+        ]
+      ],
+      "kbb": "$11,088",
+      "mmr": "$12,750"
+    },
+    "note": "4 - Own\n06/23\n06/01/2023 Structural Damage Severe\nk= $11,088\nm= $12,750",
+    "enrichedAt": "2025-06-29T16:06:29.418Z"
+  },
+  {
+    "vin": "5YJ3E1EA6KF421277",
+    "runNumber": "A/4 • Jacksonville",
+    "year": "2019",
+    "make": "Tesla",
+    "model": "Model",
+    "trim": "3 Standard Range Plus",
+    "mileage": "25,624 mi",
+    "ymmt": "2019 Tesla Model 3 Standard Range Plus",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.796Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "07/2024",
+      "accidentDamage": [
+        [
+          "02/26/2020",
+          "Collision",
+          "Severe"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "TRIM"
+    },
+    "note": "4 - Own\n07/24\n02/26/2020 Collision Severe\nk= TRIM\nm= TRIM",
+    "enrichedAt": "2025-06-29T16:06:55.954Z"
+  },
+  {
+    "vin": "1C4HJXFN2KW585465",
+    "runNumber": "A/5 • Jacksonville",
+    "year": "2019",
+    "make": "Jeep",
+    "model": "Wrangler",
+    "trim": "Unlimited Rubicon",
+    "mileage": "37,675 mi",
+    "ymmt": "2019 Jeep Wrangler Unlimited Rubicon",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.796Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "01/2022",
+      "accidentDamage": [
+        [
+          "02/28/2022",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$28,226",
+      "mmr": "$31,500"
+    },
+    "note": "2 - Own\n01/22\n02/28/2022 Collision Minor\nk= $28,226\nm= $31,500",
+    "enrichedAt": "2025-06-29T16:07:22.273Z"
+  },
+  {
+    "vin": "1GCGSDEN7K1134070",
+    "runNumber": "A/6 • Jacksonville",
+    "year": "2019",
+    "make": "Chevrolet",
+    "model": "Colorado",
+    "trim": "Z71",
+    "mileage": "59,210 mi",
+    "ymmt": "2019 Chevrolet Colorado Z71",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.796Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "03/2024",
+      "accidentDamage": [
+        [
+          "11/22/2019",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$22,800",
+      "mmr": "$21,000"
+    },
+    "note": "2 - Own\n03/24\n11/22/2019 Collision Moderate\nk= $22,800\nm= $21,000",
+    "enrichedAt": "2025-06-29T16:07:48.636Z"
+  },
+  {
+    "vin": "5FNYF5H37LB008275",
+    "runNumber": "A/7 • Jacksonville",
+    "year": "2020",
+    "make": "Honda",
+    "model": "Pilot",
+    "trim": "EX",
+    "mileage": "38,992 mi",
+    "ymmt": "2020 Honda Pilot EX",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.796Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "01/2023",
+      "accidentDamage": [],
+      "kbb": "$22,113",
+      "mmr": "$20,500"
+    },
+    "note": "2 - Own\n01/23\nk= $22,113\nm= $20,500",
+    "enrichedAt": "2025-06-29T16:08:14.956Z"
+  },
+  {
+    "vin": "5XYKT4A19CG240483",
+    "runNumber": "A/8 • Jacksonville",
+    "year": "2012",
+    "make": "Kia",
+    "model": "Sorento",
+    "trim": "LX",
+    "mileage": "193,208 mi",
+    "ymmt": "2012 Kia Sorento LX",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.796Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "11/2013",
+      "accidentDamage": [
+        [
+          "11/20/2013",
+          "Collision",
+          "Unknown"
+        ],
+        [
+          "11/07/2017",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$1,230",
+      "mmr": "$1,425"
+    },
+    "note": "2 - Own\n11/13\n11/20/2013 Collision Unknown, 11/07/2017 Collision Moderate\nk= $1,230\nm= $1,425",
+    "enrichedAt": "2025-06-29T16:08:41.680Z"
+  },
+  {
+    "vin": "5FNRL5H64EB016358",
+    "runNumber": "A/9 • Jacksonville",
+    "year": "2014",
+    "make": "Honda",
+    "model": "Odyssey",
+    "trim": "EX-L",
+    "mileage": "186,784 mi",
+    "ymmt": "2014 Honda Odyssey EX-L",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.796Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "03/2021",
+      "accidentDamage": [
+        [
+          "07/28/2017",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$4,639",
+      "mmr": "$4,725"
+    },
+    "note": "2 - Own\n03/21\n07/28/2017 Collision Moderate\nk= $4,639\nm= $4,725",
+    "enrichedAt": "2025-06-29T16:09:08.065Z"
+  },
+  {
+    "vin": "1HGCP2F43CA087231",
+    "runNumber": "A/10 • Jacksonville",
+    "year": "2012",
+    "make": "Honda",
+    "model": "Accord",
+    "trim": "LX-P",
+    "mileage": "111,740 mi",
+    "ymmt": "2012 Honda Accord LX-P",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.797Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "07/2014",
+      "accidentDamage": [
+        [
+          "06/18/2013",
+          "Collision",
+          "Moderate"
+        ],
+        [
+          "05/10/2014",
+          "Structural Damage",
+          "Severe"
+        ]
+      ],
+      "kbb": "$5,207",
+      "mmr": "$6,100"
+    },
+    "note": "2 - Own\n07/14\n06/18/2013 Collision Moderate, 05/10/2014 Structural Damage Severe\nk= $5,207\nm= $6,100",
+    "enrichedAt": "2025-06-29T16:09:34.448Z"
+  },
+  {
+    "vin": "JA32U2FU1FU024035",
+    "runNumber": "A/11 • Jacksonville",
+    "year": "2015",
+    "make": "Mitsubishi",
+    "model": "Lancer",
+    "trim": "ES",
+    "mileage": "150,450 mi",
+    "ymmt": "2015 Mitsubishi Lancer ES",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.797Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "08/2021",
+      "accidentDamage": [
+        [
+          "08/30/2021",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$1,570",
+      "mmr": "$1,800"
+    },
+    "note": "2 - Own\n08/21\n08/30/2021 Collision Minor\nk= $1,570\nm= $1,800",
+    "enrichedAt": "2025-06-29T16:10:00.849Z"
+  },
+  {
+    "vin": "KMHD74LF4HU431879",
+    "runNumber": "A/12 • Jacksonville",
+    "year": "2017",
+    "make": "Hyundai",
+    "model": "Elantra",
+    "trim": "SE",
+    "mileage": "72,712 mi",
+    "ymmt": "2017 Hyundai Elantra SE",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.798Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "09/2020",
+      "accidentDamage": [
+        [
+          "04/25/2022",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$6,066",
+      "mmr": "$6,275"
+    },
+    "note": "2 - Own\n09/20\n04/25/2022 Collision Minor\nk= $6,066\nm= $6,275",
+    "enrichedAt": "2025-06-29T16:10:27.159Z"
+  },
+  {
+    "vin": "3N1CE2CP4HL359341",
+    "runNumber": "A/13 • Jacksonville",
+    "year": "2017",
+    "make": "Nissan",
+    "model": "Versa",
+    "trim": "Note SV",
+    "mileage": "116,143 mi",
+    "ymmt": "2017 Nissan Versa Note SV",
+    "auctionLocation": "Jacksonville, FL",
+    "auctionIndex": 4,
+    "scrapedAt": "2025-06-28T18:15:02.798Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "08/2022",
+      "accidentDamage": [],
+      "kbb": "$2,790",
+      "mmr": "$2,675"
+    },
+    "note": "4 - Own\n08/22\nk= $2,790\nm= $2,675",
+    "enrichedAt": "2025-06-29T16:10:53.577Z"
+  },
+  {
+    "vin": "3FA6P0K97DR341490",
+    "runNumber": "A/1 • Louisville",
+    "year": "2013",
+    "make": "Ford",
+    "model": "Fusion",
+    "trim": "Titanium",
+    "mileage": "139,349 mi",
+    "ymmt": "2013 Ford Fusion Titanium",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.538Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "08/2015",
+      "accidentDamage": [
+        [
+          "11/04/2019",
+          "Collision",
+          "Moderate"
+        ],
+        [
+          "01/21/2022",
+          "Collision",
+          "Minor-Moderate"
+        ]
+      ],
+      "kbb": "$3,326",
+      "mmr": "$2,775"
+    },
+    "note": "2 - Own\n08/15\n11/04/2019 Collision Moderate, 01/21/2022 Collision Minor-Moderate\nk= $3,326\nm= $2,775",
+    "enrichedAt": "2025-06-29T16:11:20.487Z"
+  },
+  {
+    "vin": "1G4PR5SK8E4143936",
+    "runNumber": "A/2 • Louisville",
+    "year": "2014",
+    "make": "Buick",
+    "model": "Verano",
+    "trim": "Convenience",
+    "mileage": "120,000 mi",
+    "ymmt": "2014 Buick Verano Convenience",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.539Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "03/2019",
+      "accidentDamage": [],
+      "kbb": "$3,188",
+      "mmr": "$3,225"
+    },
+    "note": "2 - Own\n03/19\nk= $3,188\nm= $3,225",
+    "enrichedAt": "2025-06-29T16:11:47.124Z"
+  },
+  {
+    "vin": "KNDEPCAAXM7048029",
+    "runNumber": "A/3 • Louisville",
+    "year": "2021",
+    "make": "Kia",
+    "model": "Seltos",
+    "trim": "LX",
+    "mileage": "111,380 mi",
+    "ymmt": "2021 Kia Seltos LX",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.539Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "03/2020",
+      "accidentDamage": [
+        [
+          "11/20/2020",
+          "Collision",
+          "Minor-Moderate"
+        ]
+      ],
+      "kbb": "$7,871",
+      "mmr": "$7,550"
+    },
+    "note": "1 - Own\n03/20\n11/20/2020 Collision Minor-Moderate\nk= $7,871\nm= $7,550",
+    "enrichedAt": "2025-06-29T16:12:13.495Z"
+  },
+  {
+    "vin": "1C4SDJCT4FC851413",
+    "runNumber": "A/4 • Louisville",
+    "year": "2015",
+    "make": "Dodge",
+    "model": "Durango",
+    "trim": "R/T",
+    "mileage": "147,758 mi",
+    "ymmt": "2015 Dodge Durango R/T",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.539Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "08/2018",
+      "accidentDamage": [],
+      "kbb": "$8,987",
+      "mmr": "$8,750"
+    },
+    "note": "2 - Own\n08/18\nk= $8,987\nm= $8,750",
+    "enrichedAt": "2025-06-29T16:12:39.869Z"
+  },
+  {
+    "vin": "3N1CP5CV6NL485643",
+    "runNumber": "A/5 • Louisville",
+    "year": "2022",
+    "make": "Nissan",
+    "model": "Kicks",
+    "trim": "SV",
+    "mileage": "141,722 mi",
+    "ymmt": "2022 Nissan Kicks SV",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.539Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "03/2022",
+      "accidentDamage": [],
+      "kbb": "$7,672",
+      "mmr": "$6,175"
+    },
+    "note": "1 - Own\n03/22\nk= $7,672\nm= $6,175",
+    "enrichedAt": "2025-06-29T16:13:06.230Z"
+  },
+  {
+    "vin": "4JGDA5HB8GA701886",
+    "runNumber": "A/6 • Louisville",
+    "year": "2016",
+    "make": "Mercedes-Benz",
+    "model": "GLE350",
+    "trim": "Base",
+    "mileage": "151,148 mi",
+    "ymmt": "2016 Mercedes-Benz GLE350 Base",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.539Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "07/2019",
+      "accidentDamage": [],
+      "kbb": "$8,126",
+      "mmr": "$9,875"
+    },
+    "note": "2 - Own\n07/19\nk= $8,126\nm= $9,875",
+    "enrichedAt": "2025-06-29T16:13:32.600Z"
+  },
+  {
+    "vin": "SALFR24N98H110813",
+    "runNumber": "A/7 • Louisville",
+    "year": "2008",
+    "make": "Land",
+    "model": "Rover",
+    "trim": "LR2 HSE",
+    "mileage": "152,759 mi",
+    "ymmt": "2008 Land Rover LR2 HSE",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.539Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 5",
+      "ownerDateText": "06/2023",
+      "accidentDamage": [],
+      "kbb": "$1,114",
+      "mmr": "-"
+    },
+    "note": "5 - Own\n06/23\nk= $1,114\nm= -",
+    "enrichedAt": "2025-06-29T16:13:58.973Z"
+  },
+  {
+    "vin": "1FMCU0HX1DUB29961",
+    "runNumber": "A/8 • Louisville",
+    "year": "2013",
+    "make": "Ford",
+    "model": "Escape",
+    "trim": "SEL",
+    "mileage": "225,955 mi",
+    "ymmt": "2013 Ford Escape SEL",
+    "auctionLocation": "Louisville, KY",
+    "auctionIndex": 5,
+    "scrapedAt": "2025-06-28T18:15:30.540Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "11/2012",
+      "accidentDamage": [],
+      "kbb": "$219",
+      "mmr": "$725"
+    },
+    "note": "1 - Own\n11/12\nk= $219\nm= $725",
+    "enrichedAt": "2025-06-29T16:14:25.346Z"
+  },
+  {
+    "vin": "5TDYZ3DC8LS021355",
+    "runNumber": "A/1 • Newnan",
+    "year": "2020",
+    "make": "Toyota",
+    "model": "Sienna",
+    "trim": "XLE Auto Access Seat",
+    "mileage": "15,220 mi",
+    "ymmt": "2020 Toyota Sienna XLE  Auto Access Seat",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.159Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "04/2025",
+      "accidentDamage": [],
+      "kbb": "TRIM",
+      "mmr": "-"
+    },
+    "note": "2 - Own\n04/25\nk= TRIM\nm= -",
+    "enrichedAt": "2025-06-29T16:14:51.695Z"
+  },
+  {
+    "vin": "3VWFD7AT4JM709980",
+    "runNumber": "A/2 • Newnan",
+    "year": "2018",
+    "make": "Volkswagen",
+    "model": "Beetle",
+    "trim": "S",
+    "mileage": "21,459 mi",
+    "ymmt": "2018 Volkswagen Beetle S",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.159Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "11/2024",
+      "accidentDamage": [
+        [
+          "01/18/2019",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "TRIM"
+    },
+    "note": "3 - Own\n11/24\n01/18/2019 Collision Moderate\nk= TRIM\nm= TRIM",
+    "enrichedAt": "2025-06-29T16:15:17.990Z"
+  },
+  {
+    "vin": "1HGCV3F26NA026713",
+    "runNumber": "A/3 • Newnan",
+    "year": "2022",
+    "make": "Honda",
+    "model": "Accord",
+    "trim": "Hybrid Sport",
+    "mileage": "34,734 mi",
+    "ymmt": "2022 Honda Accord Hybrid Sport",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.160Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "06/2022",
+      "accidentDamage": [
+        [
+          "10/26/2022",
+          "Collision",
+          "Unknown"
+        ]
+      ],
+      "kbb": "$23,273",
+      "mmr": "$24,300"
+    },
+    "note": "1 - Own\n06/22\n10/26/2022 Collision Unknown\nk= $23,273\nm= $24,300",
+    "enrichedAt": "2025-06-29T16:15:44.341Z"
+  },
+  {
+    "vin": "JHMGK5H76GX042860",
+    "runNumber": "A/4 • Newnan",
+    "year": "2016",
+    "make": "Honda",
+    "model": "Fit",
+    "trim": "EX",
+    "mileage": "69,198 mi",
+    "ymmt": "2016 Honda Fit EX",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.160Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "07/2016",
+      "accidentDamage": [
+        [
+          "03/04/2021",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$9,617",
+      "mmr": "$9,025"
+    },
+    "note": "1 - Own\n07/16\n03/04/2021 Collision Minor\nk= $9,617\nm= $9,025",
+    "enrichedAt": "2025-06-29T16:16:10.671Z"
+  },
+  {
+    "vin": "KNAFX4A64F5282457",
+    "runNumber": "A/5 • Newnan",
+    "year": "2015",
+    "make": "Kia",
+    "model": "Forte",
+    "trim": "LX",
+    "mileage": "107,736 mi",
+    "ymmt": "2015 Kia Forte LX",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.160Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "10/2017",
+      "accidentDamage": [
+        [
+          "01/03/2018",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,516",
+      "mmr": "$3,000"
+    },
+    "note": "3 - Own\n10/17\n01/03/2018 Collision Minor\nk= $2,516\nm= $3,000",
+    "enrichedAt": "2025-06-29T16:16:37.050Z"
+  },
+  {
+    "vin": "1N4AL2APXBN433890",
+    "runNumber": "A/6 • Newnan",
+    "year": "2011",
+    "make": "Nissan",
+    "model": "Altima",
+    "trim": "S",
+    "mileage": "154,437 mi",
+    "ymmt": "2011 Nissan Altima S",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.160Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "07/2014",
+      "accidentDamage": [],
+      "kbb": "$1,241",
+      "mmr": "$1,775"
+    },
+    "note": "2 - Own\n07/14\nk= $1,241\nm= $1,775",
+    "enrichedAt": "2025-06-29T16:17:03.498Z"
+  },
+  {
+    "vin": "2T3ZFREV8JW417295",
+    "runNumber": "A/7 • Newnan",
+    "year": "2018",
+    "make": "Toyota",
+    "model": "RAV4",
+    "trim": "LE",
+    "mileage": "111,078 mi",
+    "ymmt": "2018 Toyota RAV4 LE",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.160Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "11/2019",
+      "accidentDamage": [
+        [
+          "01/27/2022",
+          "Collision",
+          "Unknown"
+        ]
+      ],
+      "kbb": "$10,679",
+      "mmr": "$11,750"
+    },
+    "note": "2 - Own\n11/19\n01/27/2022 Collision Unknown\nk= $10,679\nm= $11,750",
+    "enrichedAt": "2025-06-29T16:17:29.871Z"
+  },
+  {
+    "vin": "NM0LS7E79J1367946",
+    "runNumber": "A/8 • Newnan",
+    "year": "2018",
+    "make": "Ford",
+    "model": "Transit",
+    "trim": "Connect XL",
+    "mileage": "86,082 mi",
+    "ymmt": "2018 Ford Transit Connect XL",
+    "auctionLocation": "Newnan, GA",
+    "auctionIndex": 6,
+    "scrapedAt": "2025-06-28T18:15:58.160Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "01/2021",
+      "accidentDamage": [
+        [
+          "11/18/2020",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$8,907",
+      "mmr": "$7,900"
+    },
+    "note": "2 - Own\n01/21\n11/18/2020 Collision Moderate\nk= $8,907\nm= $7,900",
+    "enrichedAt": "2025-06-29T16:17:56.205Z"
+  },
+  {
+    "vin": "5XXGM4A75FG441264",
+    "runNumber": "A/1 • Rochester",
+    "year": "2015",
+    "make": "Kia",
+    "model": "Optima",
+    "trim": "LX",
+    "mileage": "81,012 mi",
+    "ymmt": "2015 Kia Optima LX",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.292Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "01/2020",
+      "accidentDamage": [],
+      "kbb": "$4,452",
+      "mmr": "$4,075"
+    },
+    "note": "3 - Own\n01/20\nk= $4,452\nm= $4,075",
+    "enrichedAt": "2025-06-29T16:18:22.554Z"
+  },
+  {
+    "vin": "3FAHP0HA8BR153214",
+    "runNumber": "A/2 • Rochester",
+    "year": "2011",
+    "make": "Ford",
+    "model": "Fusion",
+    "trim": "SE",
+    "mileage": "84,290 mi",
+    "ymmt": "2011 Ford Fusion SE",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.292Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "11/2010",
+      "accidentDamage": [],
+      "kbb": "$3,016",
+      "mmr": "$2,600"
+    },
+    "note": "1 - Own\n11/10\nk= $3,016\nm= $2,600",
+    "enrichedAt": "2025-06-29T16:18:48.882Z"
+  },
+  {
+    "vin": "2T3BF4DV8BW161960",
+    "runNumber": "A/3 • Rochester",
+    "year": "2011",
+    "make": "Toyota",
+    "model": "RAV4",
+    "trim": "Base",
+    "mileage": "131,666 mi",
+    "ymmt": "2011 Toyota RAV4 Base",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.292Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "03/2016",
+      "accidentDamage": [],
+      "kbb": "$4,964",
+      "mmr": "$5,600"
+    },
+    "note": "2 - Own\n03/16\nk= $4,964\nm= $5,600",
+    "enrichedAt": "2025-06-29T16:19:15.246Z"
+  },
+  {
+    "vin": "1J4FT47A09D189000",
+    "runNumber": "A/4 • Rochester",
+    "year": "2009",
+    "make": "Jeep",
+    "model": "Compass",
+    "trim": "Sport",
+    "mileage": "78,911 mi",
+    "ymmt": "2009 Jeep Compass Sport",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.292Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "03/2022",
+      "accidentDamage": [],
+      "kbb": "$1,495",
+      "mmr": "-"
+    },
+    "note": "3 - Own\n03/22\nk= $1,495\nm= -",
+    "enrichedAt": "2025-06-29T16:19:41.608Z"
+  },
+  {
+    "vin": "2FMDK4JC5EBB15951",
+    "runNumber": "A/5 • Rochester",
+    "year": "2014",
+    "make": "Ford",
+    "model": "Edge",
+    "trim": "SEL",
+    "mileage": "153,563 mi",
+    "ymmt": "2014 Ford Edge SEL",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.292Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "",
+      "accidentDamage": [],
+      "kbb": "$3,805",
+      "mmr": "$3,450"
+    },
+    "note": "2 - Own\nk= $3,805\nm= $3,450",
+    "enrichedAt": "2025-06-29T16:20:07.988Z"
+  },
+  {
+    "vin": "3N1BC1CP0CK212119",
+    "runNumber": "A/6 • Rochester",
+    "year": "2012",
+    "make": "Nissan",
+    "model": "Versa",
+    "trim": "S",
+    "mileage": "110,779 mi",
+    "ymmt": "2012 Nissan Versa S",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.292Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "07/2020",
+      "accidentDamage": [
+        [
+          "10/14/2022",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$1,365",
+      "mmr": "$2,150"
+    },
+    "note": "4 - Own\n07/20\n10/14/2022 Collision Minor\nk= $1,365\nm= $2,150",
+    "enrichedAt": "2025-06-29T16:20:34.383Z"
+  },
+  {
+    "vin": "1YVHZ8BH2C5M05546",
+    "runNumber": "A/7 • Rochester",
+    "year": "2012",
+    "make": "Mazda",
+    "model": "Mazda6",
+    "trim": "I",
+    "mileage": "151,112 mi",
+    "ymmt": "2012 Mazda Mazda6 I",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.293Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "10/2021",
+      "accidentDamage": [
+        [
+          "02/16/2021",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$1,746",
+      "mmr": "$1,525"
+    },
+    "note": "4 - Own\n10/21\n02/16/2021 Collision Minor\nk= $1,746\nm= $1,525",
+    "enrichedAt": "2025-06-29T16:21:00.751Z"
+  },
+  {
+    "vin": "1G11D5SL6FF123880",
+    "runNumber": "A/8 • Rochester",
+    "year": "2015",
+    "make": "Chevrolet",
+    "model": "Malibu",
+    "trim": "LT",
+    "mileage": "166,506 mi",
+    "ymmt": "2015 Chevrolet Malibu LT",
+    "auctionLocation": "Rochester, NY",
+    "auctionIndex": 7,
+    "scrapedAt": "2025-06-28T18:16:26.293Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 4",
+      "ownerDateText": "05/2019",
+      "accidentDamage": [
+        [
+          "11/05/2014",
+          "Collision",
+          "Minor"
+        ],
+        [
+          "03/05/2018",
+          "Collision",
+          "Moderate"
+        ],
+        [
+          "06/21/2019",
+          "Collision",
+          "Minor"
+        ],
+        [
+          "01/23/2022",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,601",
+      "mmr": "$2,100"
+    },
+    "note": "4 - Own\n05/19\n11/05/2014 Collision Minor, 03/05/2018 Collision Moderate, 06/21/2019 Collision Minor, 01/23/2022 Collision Minor\nk= $2,601\nm= $2,100",
+    "enrichedAt": "2025-06-29T16:21:27.131Z"
+  },
+  {
+    "vin": "1G8AJ58F86Z196663",
+    "runNumber": "A/1 • Smithtown",
+    "year": "2006",
+    "make": "Saturn",
+    "model": "Ion",
+    "trim": "2",
+    "mileage": "66,316 mi",
+    "ymmt": "2006 Saturn Ion 2",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "06/2006",
+      "accidentDamage": [],
+      "kbb": "$1,617",
+      "mmr": "$1,750"
+    },
+    "note": "1 - Own\n06/06\nk= $1,617\nm= $1,750",
+    "enrichedAt": "2025-06-29T16:21:53.438Z"
+  },
+  {
+    "vin": "3C4PDCAB7DT538319",
+    "runNumber": "A/2 • Smithtown",
+    "year": "2013",
+    "make": "Dodge",
+    "model": "Journey",
+    "trim": "American Value",
+    "mileage": "136,907 mi",
+    "ymmt": "2013 Dodge Journey American Value",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "09/2015",
+      "accidentDamage": [],
+      "kbb": "$1,423",
+      "mmr": "$1,700"
+    },
+    "note": "2 - Own\n09/15\nk= $1,423\nm= $1,700",
+    "enrichedAt": "2025-06-29T16:22:19.810Z"
+  },
+  {
+    "vin": "4S4BRBAC6D3280588",
+    "runNumber": "A/3 • Smithtown",
+    "year": "2013",
+    "make": "Subaru",
+    "model": "Outback",
+    "trim": "2.5I",
+    "mileage": "181,308 mi",
+    "ymmt": "2013 Subaru Outback 2.5I",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "08/2021",
+      "accidentDamage": [],
+      "kbb": "$1,954",
+      "mmr": "$1,250"
+    },
+    "note": "3 - Own\n08/21\nk= $1,954\nm= $1,250",
+    "enrichedAt": "2025-06-29T16:22:46.182Z"
+  },
+  {
+    "vin": "3GYFNEE39FS510256",
+    "runNumber": "A/4 • Smithtown",
+    "year": "2015",
+    "make": "Cadillac",
+    "model": "SRX",
+    "trim": "Luxury",
+    "mileage": "225,127 mi",
+    "ymmt": "2015 Cadillac SRX Luxury",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "05/2016",
+      "accidentDamage": [
+        [
+          "05/01/2023",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$1,950",
+      "mmr": "$1,025"
+    },
+    "note": "3 - Own\n05/16\n05/01/2023 Collision Moderate\nk= $1,950\nm= $1,025",
+    "enrichedAt": "2025-06-29T16:23:12.538Z"
+  },
+  {
+    "vin": "4S3BNAN69G3008099",
+    "runNumber": "A/5 • Smithtown",
+    "year": "2016",
+    "make": "Subaru",
+    "model": "Legacy",
+    "trim": "2.5I Limited",
+    "mileage": "216,745 mi",
+    "ymmt": "2016 Subaru Legacy 2.5I Limited",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "10/2015",
+      "accidentDamage": [
+        [
+          "05/22/2019",
+          "Collision",
+          "Minor"
+        ],
+        [
+          "04/28/2022",
+          "Collision",
+          "Unknown"
+        ],
+        [
+          "12/25/2022",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,803",
+      "mmr": "$2,100"
+    },
+    "note": "1 - Own\n10/15\n05/22/2019 Collision Minor, 04/28/2022 Collision Unknown, 12/25/2022 Collision Minor\nk= $2,803\nm= $2,100",
+    "enrichedAt": "2025-06-29T16:23:38.908Z"
+  },
+  {
+    "vin": "1N4AL2AP8BN439395",
+    "runNumber": "A/6 • Smithtown",
+    "year": "2011",
+    "make": "Nissan",
+    "model": "Altima",
+    "trim": "S",
+    "mileage": "204,225 mi",
+    "ymmt": "2011 Nissan Altima S",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 6",
+      "ownerDateText": "08/2024",
+      "accidentDamage": [
+        [
+          "05/11/2015",
+          "Collision",
+          "Unknown"
+        ],
+        [
+          "12/07/2021",
+          "Collision",
+          "Unknown"
+        ]
+      ],
+      "kbb": "$875",
+      "mmr": "$1,200"
+    },
+    "note": "6 - Own\n08/24\n05/11/2015 Collision Unknown, 12/07/2021 Collision Unknown\nk= $875\nm= $1,200",
+    "enrichedAt": "2025-06-29T16:24:05.306Z"
+  },
+  {
+    "vin": "2T1BR32E56C613755",
+    "runNumber": "A/7 • Smithtown",
+    "year": "2006",
+    "make": "Toyota",
+    "model": "Corolla",
+    "trim": "LE",
+    "mileage": "162,549 mi",
+    "ymmt": "2006 Toyota Corolla LE",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "02/2006",
+      "accidentDamage": [],
+      "kbb": "TRIM",
+      "mmr": "TRIM"
+    },
+    "note": "1 - Own\n02/06\nk= TRIM\nm= TRIM",
+    "enrichedAt": "2025-06-29T16:24:31.714Z"
+  },
+  {
+    "vin": "KMHDU4AD7AU904996",
+    "runNumber": "A/8 • Smithtown",
+    "year": "2010",
+    "make": "Hyundai",
+    "model": "Elantra",
+    "trim": "Blue",
+    "mileage": "97,910 mi",
+    "ymmt": "2010 Hyundai Elantra Blue",
+    "auctionLocation": "Smithtown, NY",
+    "auctionIndex": 8,
+    "scrapedAt": "2025-06-28T18:16:54.066Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "04/2014",
+      "accidentDamage": [],
+      "kbb": "$2,315",
+      "mmr": "TRIM"
+    },
+    "note": "2 - Own\n04/14\nk= $2,315\nm= TRIM",
+    "enrichedAt": "2025-06-29T16:24:58.024Z"
+  },
+  {
+    "vin": "2GKFLWEK8F6266112",
+    "runNumber": "A/1 • Tampa",
+    "year": "2015",
+    "make": "GMC",
+    "model": "Terrain",
+    "trim": "SLE",
+    "mileage": "135,565 mi",
+    "ymmt": "2015 GMC Terrain SLE",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.829Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "09/2018",
+      "accidentDamage": [
+        [
+          "10/13/2024",
+          "Collision",
+          "Moderate"
+        ]
+      ],
+      "kbb": "$3,602",
+      "mmr": "$2,850"
+    },
+    "note": "2 - Own\n09/18\n10/13/2024 Collision Moderate\nk= $3,602\nm= $2,850",
+    "enrichedAt": "2025-06-29T16:25:24.488Z"
+  },
+  {
+    "vin": "JTHBK1EG8B2423476",
+    "runNumber": "A/2 • Tampa",
+    "year": "2011",
+    "make": "Lexus",
+    "model": "ES",
+    "trim": "350 Base",
+    "mileage": "161,505 mi",
+    "ymmt": "2011 Lexus ES 350 Base",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.829Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "02/2015",
+      "accidentDamage": [],
+      "kbb": "$4,301",
+      "mmr": "$4,650"
+    },
+    "note": "2 - Own\n02/15\nk= $4,301\nm= $4,650",
+    "enrichedAt": "2025-06-29T16:25:50.830Z"
+  },
+  {
+    "vin": "1FMCU0J99FUB05261",
+    "runNumber": "A/3 • Tampa",
+    "year": "2015",
+    "make": "Ford",
+    "model": "Escape",
+    "trim": "Titanium",
+    "mileage": "253,925 mi",
+    "ymmt": "2015 Ford Escape Titanium",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.829Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "11/2015",
+      "accidentDamage": [
+        [
+          "09/28/2021",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$512",
+      "mmr": "$1,125"
+    },
+    "note": "2 - Own\n11/15\n09/28/2021 Collision Minor\nk= $512\nm= $1,125",
+    "enrichedAt": "2025-06-29T16:26:17.737Z"
+  },
+  {
+    "vin": "5NPET4AC5AH643980",
+    "runNumber": "A/4 • Tampa",
+    "year": "2010",
+    "make": "Hyundai",
+    "model": "Sonata",
+    "trim": "GLS",
+    "mileage": "134,452 mi",
+    "ymmt": "2010 Hyundai Sonata GLS",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.829Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "11/2022",
+      "accidentDamage": [
+        [
+          "01/11/2019",
+          "Collision",
+          "Minor"
+        ],
+        [
+          "07/26/2019",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$1,468",
+      "mmr": "$2,025"
+    },
+    "note": "2 - Own\n11/22\n01/11/2019 Collision Minor, 07/26/2019 Collision Minor\nk= $1,468\nm= $2,025",
+    "enrichedAt": "2025-06-29T16:26:44.105Z"
+  },
+  {
+    "vin": "1FA6P8TH8J5145979",
+    "runNumber": "A/5 • Tampa",
+    "year": "2018",
+    "make": "Ford",
+    "model": "Mustang",
+    "trim": "Ecoboost",
+    "mileage": "61,131 mi",
+    "ymmt": "2018 Ford Mustang Ecoboost",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.830Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "",
+      "accidentDamage": [],
+      "kbb": "$12,808",
+      "mmr": "$14,150"
+    },
+    "note": "2 - Own\nk= $12,808\nm= $14,150",
+    "enrichedAt": "2025-06-29T16:27:10.406Z"
+  },
+  {
+    "vin": "JN1CY0AP2AM910537",
+    "runNumber": "A/6 • Tampa",
+    "year": "2010",
+    "make": "Infiniti",
+    "model": "M35",
+    "trim": "Base",
+    "mileage": "175,141 mi",
+    "ymmt": "2010 Infiniti M35 Base",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.830Z"
+  },
+  {
+    "vin": "1GNFK13038J238105",
+    "runNumber": "A/7 • Tampa",
+    "year": "2008",
+    "make": "Chevrolet",
+    "model": "Tahoe",
+    "trim": "LTZ",
+    "mileage": "271,126 mi",
+    "ymmt": "2008 Chevrolet Tahoe LTZ",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.830Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 6",
+      "ownerDateText": "09/2024",
+      "accidentDamage": [
+        [
+          "02/15/2019",
+          "Collision",
+          "Unknown"
+        ],
+        [
+          "11/22/2021",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,559",
+      "mmr": "$1,925"
+    },
+    "note": "6 - Own\n09/24\n02/15/2019 Collision Unknown, 11/22/2021 Collision Minor\nk= $2,559\nm= $1,925",
+    "enrichedAt": "2025-06-29T16:28:33.375Z"
+  },
+  {
+    "vin": "2GKALUEK0C6176737",
+    "runNumber": "A/8 • Tampa",
+    "year": "2012",
+    "make": "GMC",
+    "model": "Terrain",
+    "trim": "SLT",
+    "mileage": "145,394 mi",
+    "ymmt": "2012 GMC Terrain SLT",
+    "auctionLocation": "Tampa, FL",
+    "auctionIndex": 9,
+    "scrapedAt": "2025-06-28T18:17:21.830Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "10/2023",
+      "accidentDamage": [],
+      "kbb": "$2,054",
+      "mmr": "$2,525"
+    },
+    "note": "3 - Own\n10/23\nk= $2,054\nm= $2,525",
+    "enrichedAt": "2025-06-29T16:28:59.730Z"
+  },
+  {
+    "vin": "WBA5A5C51FD521475",
+    "runNumber": "A/1 • Hickory",
+    "year": "2015",
+    "make": "BMW",
+    "model": "528",
+    "trim": "I",
+    "mileage": "161,701 mi",
+    "ymmt": "2015 BMW 528 I",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.676Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "02/2023",
+      "accidentDamage": [],
+      "kbb": "$2,809",
+      "mmr": "$2,025"
+    },
+    "note": "2 - Own\n02/23\nk= $2,809\nm= $2,025",
+    "enrichedAt": "2025-06-29T16:29:26.085Z"
+  },
+  {
+    "vin": "19XFA1F88BE002311",
+    "runNumber": "A/2 • Hickory",
+    "year": "2011",
+    "make": "Honda",
+    "model": "Civic",
+    "trim": "EX",
+    "mileage": "196,340 mi",
+    "ymmt": "2011 Honda Civic EX",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.676Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "06/2017",
+      "accidentDamage": [
+        [
+          "12/25/2015",
+          "Collision",
+          "Minor"
+        ]
+      ],
+      "kbb": "$2,827",
+      "mmr": "$2,425"
+    },
+    "note": "3 - Own\n06/17\n12/25/2015 Collision Minor\nk= $2,827\nm= $2,425",
+    "enrichedAt": "2025-06-29T16:29:52.436Z"
+  },
+  {
+    "vin": "1GKKRNED4EJ291518",
+    "runNumber": "A/3 • Hickory",
+    "year": "2014",
+    "make": "GMC",
+    "model": "Acadia",
+    "trim": "SLE",
+    "mileage": "184,654 mi",
+    "ymmt": "2014 GMC Acadia SLE",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.676Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "12/2022",
+      "accidentDamage": [],
+      "kbb": "$1,876",
+      "mmr": "$1,725"
+    },
+    "note": "3 - Own\n12/22\nk= $1,876\nm= $1,725",
+    "enrichedAt": "2025-06-29T16:30:18.781Z"
+  },
+  {
+    "vin": "JF1ZCAC15F8601803",
+    "runNumber": "A/4 • Hickory",
+    "year": "2015",
+    "make": "Subaru",
+    "model": "BRZ",
+    "trim": "Limited",
+    "mileage": "125,504 mi",
+    "ymmt": "2015 Subaru BRZ Limited",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.676Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "09/2024",
+      "accidentDamage": [],
+      "kbb": "$6,796",
+      "mmr": "$6,350"
+    },
+    "note": "3 - Own\n09/24\nk= $6,796\nm= $6,350",
+    "enrichedAt": "2025-06-29T16:30:45.144Z"
+  },
+  {
+    "vin": "1FMCU0GX4GUB88489",
+    "runNumber": "A/5 • Hickory",
+    "year": "2016",
+    "make": "Ford",
+    "model": "Escape",
+    "trim": "SE",
+    "mileage": "116,310 mi",
+    "ymmt": "2016 Ford Escape SE",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.676Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "09/2023",
+      "accidentDamage": [
+        [
+          "11/04/2023",
+          "Collision",
+          "Unknown"
+        ]
+      ],
+      "kbb": "$3,452",
+      "mmr": "$3,800"
+    },
+    "note": "3 - Own\n09/23\n11/04/2023 Collision Unknown\nk= $3,452\nm= $3,800",
+    "enrichedAt": "2025-06-29T16:31:11.580Z"
+  },
+  {
+    "vin": "YV1672MC5DJ143719",
+    "runNumber": "A/6 • Hickory",
+    "year": "2013",
+    "make": "Volvo",
+    "model": "C70",
+    "trim": "T5",
+    "mileage": "14,720 mi",
+    "ymmt": "2013 Volvo C70 T5",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.676Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "1 - Own",
+      "ownerDateText": "08/2013",
+      "accidentDamage": [],
+      "kbb": "$8,349",
+      "mmr": "$10,500"
+    },
+    "note": "1 - Own\n08/13\nk= $8,349\nm= $10,500",
+    "enrichedAt": "2025-06-29T16:31:37.896Z"
+  },
+  {
+    "vin": "JM1BL1S52A1306532",
+    "runNumber": "A/7 • Hickory",
+    "year": "2010",
+    "make": "Mazda",
+    "model": "Mazda3",
+    "trim": "S",
+    "mileage": "147,112 mi",
+    "ymmt": "2010 Mazda Mazda3 S",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.676Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 3",
+      "ownerDateText": "01/2021",
+      "accidentDamage": [],
+      "kbb": "$2,072",
+      "mmr": "$2,050"
+    },
+    "note": "3 - Own\n01/21\nk= $2,072\nm= $2,050",
+    "enrichedAt": "2025-06-29T16:32:04.326Z"
+  },
+  {
+    "vin": "4T1B11HK2JU525939",
+    "runNumber": "A/8 • Hickory",
+    "year": "2018",
+    "make": "Toyota",
+    "model": "Camry",
+    "trim": "XLE",
+    "mileage": "83,865 mi",
+    "ymmt": "2018 Toyota Camry XLE",
+    "auctionLocation": "Hickory, NC",
+    "auctionIndex": 10,
+    "scrapedAt": "2025-06-28T18:17:49.677Z",
+    "vautoData": {
+      "odometerCheck": "No Issue",
+      "owner": "Owners - 2",
+      "ownerDateText": "04/2021",
+      "accidentDamage": [
+        [
+          "02/28/2023",
+          "Collision",
+          "Unknown"
+        ]
+      ],
+      "kbb": "TRIM",
+      "mmr": "$15,400"
+    },
+    "note": "2 - Own\n04/21\n02/28/2023 Collision Unknown\nk= TRIM\nm= $15,400",
+    "enrichedAt": "2025-06-29T16:32:30.640Z"
+  }
+]
