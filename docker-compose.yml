@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    environment:
+      - VAUTO_USERNAME=${VAUTO_USERNAME}
+      - VAUTO_PASSWORD=${VAUTO_PASSWORD}
+      - NODE_ENV=production
+      - MODE=web
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount data directory for persistent storage
+      - ./data:/usr/src/app/data
+    restart: unless-stopped
+    # Web interface mode - provides GUI for managing JSON file
+    command: ["node", "src/app.js"]

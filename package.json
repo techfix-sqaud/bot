@@ -4,12 +4,14 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "web": "node src/webInterface.js",
     "scrape": "node test-scraper.js",
     "test-login": "node test-login.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
+    "express": "^4.21.2",
     "lodash": "^4.17.21",
     "puppeteer": "^22.15.0"
   },
