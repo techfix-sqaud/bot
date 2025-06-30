@@ -216,6 +216,78 @@ class VehicleDataOrchestrator {
 
     return files;
   }
+
+  /**
+   * Run only CarMax scraping
+   */
+  async runCarmaxOnly() {
+    console.log("🚗 Running CarMax scraping only...");
+
+    const scrapeAuctions = require("./carmaxScraper");
+    const results = await scrapeAuctions();
+
+    console.log(
+      `✅ CarMax scraping completed. Found ${results.vehicles.length} vehicles`
+    );
+    console.log(`📁 Saved to: ${results.filename}`);
+
+    return {
+      vehicles: results.vehicles,
+      jsonFile: results.filename,
+      summary: {
+        total: results.vehicles.length,
+        successful: results.vehicles.length,
+        failed: 0,
+      },
+    };
+  }
+
+  /**
+   * Run vAuto annotation on the latest vehicle file
+   */
+  async runVautoOnLatest() {
+    console.log("🔍 Running vAuto annotation on latest file...");
+
+    // Get the most recent file
+    const latestFile = getMostRecentFile("vehicles");
+    if (!latestFile) {
+      throw new Error("No vehicle data files found for vAuto processing");
+    }
+
+    console.log(`📂 Using latest file: ${latestFile}`);
+
+    // Load vehicles from the file
+    const vehicles = require("./utils").loadJSON(latestFile);
+    if (!vehicles || vehicles.length === 0) {
+      console.error("❌ No vehicle data found in the latest file", vehicles);
+      throw new Error("No vehicle data found in the latest file");
+    }
+
+    // Create a user object with all VINs from the file
+    const vins = vehicles.map((v) => v.vin || v.VIN).filter((vin) => vin);
+    if (vins.length === 0) {
+      console.error("❌ Sample vehicle data:", vehicles[0]);
+      throw new Error(
+        "No VINs found in the vehicle data. Check VIN field naming."
+      );
+    }
+
+    console.log(`🎯 Processing ${vins.length} VINs with vAuto...`);
+
+    const user = {
+      email: "system@automated.com",
+      vins: vins,
+    };
+
+    const annotateUser = require("./vautoAnnotator");
+    const results = await annotateUser(user, {
+      inputFile: latestFile,
+      exportFormat: "json",
+    });
+
+    console.log("✅ vAuto annotation completed!");
+    return results;
+  }
 }
 
 module.exports = VehicleDataOrchestrator;
