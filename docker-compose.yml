@@ -9,7 +9,6 @@ services:
       - NODE_ENV=production
       - MODE=web
       - PORT=3000
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     ports:
       - "3000:3000"
     volumes:

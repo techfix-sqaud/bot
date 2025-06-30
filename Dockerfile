@@ -1,64 +1,61 @@
-# Multi-stage build for faster builds and smaller images
-FROM node:18-alpine AS base
+# Alternative Debian-based Dockerfile for better Puppeteer compatibility
+FROM node:18-slim
 
-# Install chromium and required dependencies in Alpine
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
+# Install necessary packages for Puppeteer
+RUN apt-get update && apt-get install -y \
+    wget \
     ca-certificates \
-    ttf-freefont \
-    # Additional dependencies for graphics and shared libraries
-    mesa-gbm \
-    mesa-dri-gallium \
-    udev \
-    ttf-liberation \
-    # X11 and graphics libraries available in Alpine
-    libx11 \
-    libxcomposite \
-    libxcursor \
-    libxdamage \
-    libxext \
-    libxfixes \
-    libxi \
-    libxrandr \
-    libxrender \
-    libxss \
-    libxtst \
-    # Additional libraries that might be needed
-    glib \
-    gtk+3.0 \
-    pango \
-    atk \
-    cairo \
-    gdk-pixbuf \
-    && ln -s /usr/bin/chromium-browser /usr/bin/google-chrome-stable \
-    && ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libc6 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgbm1 \
+    libgcc1 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    lsb-release \
+    xdg-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create app user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd --gid 1001 --system nodejs \
+    && useradd --uid 1001 --system --gid nodejs --shell /bin/bash --create-home nodejs
 
 WORKDIR /app
 
-# Dependencies stage
-FROM base AS deps
+# Copy package files
 COPY package*.json ./
+
+# Install dependencies
 RUN npm ci --only=production --silent --no-audit --no-fund && \
     npm cache clean --force
 
-# Production stage
-FROM base AS runner
-WORKDIR /app
-
-# Copy dependencies
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy application code (use .dockerignore to exclude unnecessary files)
+# Copy application code
 COPY --chown=nodejs:nodejs src/ ./src/
-COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs *.js ./
 COPY --chown=nodejs:nodejs *.sql ./
 
@@ -68,8 +65,7 @@ RUN mkdir -p data user_data && \
 
 # Set environment variables
 ENV NODE_ENV=production \
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 
 USER nodejs
 
