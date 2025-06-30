@@ -292,7 +292,14 @@ function formatEvaluationNote(evaluationData) {
 /**
  * Main function to enrich existing vehicles with vAuto data
  */
-async function enrichVehiclesWithVAuto() {
+async function enrichVehiclesWithVAuto(jobId = null) {
+  // Utility function to check for cancellation
+  const checkCancellation = () => {
+    if (jobId && global.jobCancellation && global.jobCancellation[jobId]) {
+      throw new Error("Job was cancelled by user request");
+    }
+  };
+
   const browser = await puppeteer.launch(
     config.getPuppeteerOptions({
       userDataDir: "./user_data",
@@ -308,13 +315,18 @@ async function enrichVehiclesWithVAuto() {
   );
 
   const vautoPage = await browser.newPage();
+  let vehicles = []; // Initialize to ensure it's accessible in catch block
 
   try {
+    checkCancellation(); // Check before starting
+
     // Login to vAuto only
     await loginToVAuto(vautoPage);
 
+    checkCancellation(); // Check after login
+
     // Load existing vehicles data
-    let vehicles = loadJSON("./data/vehicles.json");
+    vehicles = loadJSON("./data/vehicles.json");
     console.log(`📋 Loaded ${vehicles.length} existing vehicles from JSON`);
 
     if (vehicles.length === 0) {
@@ -342,14 +354,32 @@ async function enrichVehiclesWithVAuto() {
 
     let successCount = 0;
     let failCount = 0;
+    const startTime = Date.now();
 
     // Process each vehicle
     for (let i = 0; i < vehiclesToProcess.length; i++) {
+      checkCancellation(); // Check before processing each vehicle
+
       const vehicle = vehiclesToProcess[i];
+      const progressPercent = (
+        ((i + 1) / vehiclesToProcess.length) *
+        100
+      ).toFixed(1);
+      const remainingCount = vehiclesToProcess.length - (i + 1);
+
+      // Calculate ETA
+      const elapsedTime = Date.now() - startTime;
+      const avgTimePerVehicle = elapsedTime / (i + 1);
+      const estimatedTimeRemaining = Math.round(
+        (avgTimePerVehicle * remainingCount) / 1000 / 60
+      ); // in minutes
+      const etaText = i > 0 ? ` - ETA: ${estimatedTimeRemaining}min` : "";
 
       try {
         console.log(
-          `\n🔄 Processing ${i + 1}/${vehiclesToProcess.length}: ${
+          `\n🔄 Processing ${i + 1}/${
+            vehiclesToProcess.length
+          } (${progressPercent}%) - ${remainingCount} remaining${etaText}: ${
             vehicle.ymmt || vehicle.title || "Unknown Vehicle"
           }`
         );
@@ -390,9 +420,19 @@ async function enrichVehiclesWithVAuto() {
 
           successCount++;
           console.log(`✅ Successfully enriched vehicle ${vehicle.vin}`);
+          console.log(
+            `📊 Progress: ${successCount + failCount}/${
+              vehiclesToProcess.length
+            } vehicles completed`
+          );
         } else {
           console.log(`❌ Failed to get vAuto data for ${vehicle.vin}`);
           failCount++;
+          console.log(
+            `📊 Progress: ${successCount + failCount}/${
+              vehiclesToProcess.length
+            } vehicles completed`
+          );
         }
 
         // Wait between requests to avoid rate limiting
@@ -403,6 +443,11 @@ async function enrichVehiclesWithVAuto() {
           error.message
         );
         failCount++;
+        console.log(
+          `📊 Progress: ${successCount + failCount}/${
+            vehiclesToProcess.length
+          } vehicles completed`
+        );
       }
     }
 
@@ -413,7 +458,48 @@ async function enrichVehiclesWithVAuto() {
     console.log(`✅ Successfully processed: ${successCount} vehicles`);
     console.log(`❌ Failed: ${failCount} vehicles`);
     console.log(`📁 Updated vehicles.json with vAuto data`);
+
+    return {
+      vehicles,
+      summary: {
+        total: vehiclesToProcess.length,
+        successful: successCount,
+        failed: failCount,
+      },
+    };
   } catch (error) {
+    // Check if this was a cancellation
+    if (error.message && error.message.includes("cancelled")) {
+      console.log("🛑 vAuto enrichment was cancelled");
+
+      // Save whatever we got so far if we have any vehicles
+      if (vehicles && vehicles.length > 0) {
+        saveJSON("./data/vehicles_cancelled.json", vehicles);
+        console.log(`💾 Partial data saved to: vehicles_cancelled.json`);
+
+        return {
+          vehicles,
+          cancelled: true,
+          summary: {
+            total: successCount + failCount,
+            successful: successCount,
+            failed: failCount,
+          },
+        };
+      } else {
+        console.log("🛑 No vehicles were processed before cancellation");
+        return {
+          vehicles: [],
+          cancelled: true,
+          summary: {
+            total: 0,
+            successful: 0,
+            failed: 0,
+          },
+        };
+      }
+    }
+
     console.error("❌ Fatal error:", error.message);
     throw error;
   } finally {

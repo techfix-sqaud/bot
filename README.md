@@ -4,6 +4,10 @@ A Node.js bot that enriches existing vehicle data with comprehensive evaluation 
 
 ## Features
 
+- **CarMax Integration**: Scrapes vehicle data from CarMax auctions or your saved My List
+- **Scraping Options**: 
+  - **All Auctions**: Scrape vehicles from all available CarMax auctions
+  - **My List**: Scrape only vehicles you've saved in your CarMax "My List"
 - **vAuto Integration**: Logs into vAuto and evaluates vehicles from your JSON file
 - **Comprehensive Data**: Gets detailed vehicle evaluation including:
   - KBB (Kelley Blue Book) values
@@ -12,6 +16,7 @@ A Node.js bot that enriches existing vehicle data with comprehensive evaluation 
   - Odometer verification
 - **Smart Processing**: Only processes vehicles that don't already have vAuto data
 - **Data Persistence**: Updates vehicles.json with enriched evaluation data
+- **Web Interface**: Easy-to-use web interface for managing scraping and data export
 
 ## Setup
 
@@ -26,29 +31,41 @@ A Node.js bot that enriches existing vehicle data with comprehensive evaluation 
    ```
    VAUTO_USERNAME=your_vauto_username
    VAUTO_PASSWORD=your_vauto_password
+   CARMAX_EMAIL=your_carmax_email
+   CARMAX_PASSWORD=your_carmax_password
    ```
 
 ## Usage
 
-### Run the vAuto Enrichment
+### Web Interface (Recommended)
+```bash
+npm start
+```
+Then open your browser to `http://localhost:3000` and use the web interface to:
+- Choose between "All Auctions" or "My List" scraping
+- Monitor scraping progress in real-time
+- Cancel running jobs if needed
+- View and export scraped data
+
+### Command Line Interface
+
+#### Run Complete Workflow (CarMax + vAuto)
 ```bash
 npm run scrape
 ```
 
-This will:
-1. Load existing vehicles from `./data/vehicles.json`
-2. Login to vAuto
-3. Evaluate each vehicle that doesn't already have vAuto data
-4. Update the JSON file with enriched evaluation data
-
-### Run via npm start
+#### Run Only CarMax Scraping
 ```bash
-npm start
+# Scrape all auctions
+node cli.js carmax --mode=auctions
+
+# Scrape only My List
+node cli.js carmax --mode=mylist
 ```
 
-### Run directly
+#### Run Only vAuto Enrichment
 ```bash
-node test-scraper.js
+npm run vauto
 ```
 
 ## How It Works

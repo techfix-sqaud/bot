@@ -7,6 +7,7 @@ const VehicleDataOrchestrator = require("./src/orchestrator");
 const args = process.argv.slice(2);
 const options = {
   skipScraping: false,
+  scrapingMode: "auctions", // "auctions" or "mylist"
   exportFormat: "xlsx",
   exportFilename: null,
   user: null,
@@ -19,6 +20,22 @@ for (let i = 0; i < args.length; i++) {
     case "--skip-scraping":
     case "-s":
       options.skipScraping = true;
+      break;
+    case "--scraping-mode":
+    case "-m":
+      if (i + 1 < args.length) {
+        const mode = args[++i].toLowerCase();
+        if (mode === "mylist" || mode === "my-list") {
+          options.scrapingMode = "mylist";
+        } else if (mode === "auctions" || mode === "all") {
+          options.scrapingMode = "auctions";
+        } else {
+          console.error(
+            `❌ Invalid scraping mode: ${mode}. Use 'auctions' or 'mylist'`
+          );
+          process.exit(1);
+        }
+      }
       break;
     case "--format":
     case "-f":
@@ -75,14 +92,18 @@ COMMANDS:
 
 OPTIONS:
   -s, --skip-scraping     Skip CarMax scraping, use existing data
+  -m, --scraping-mode MODE  Scraping mode: 'auctions' or 'mylist' (default: auctions)
   -f, --format FORMAT     Export format: xlsx, csv, xls, json (default: xlsx)
   -o, --output FILE       Output filename (auto-generated if not specified)
   -v, --vins VINS         Comma-separated VINs for vAuto annotation
   -h, --help              Show this help message
 
 EXAMPLES:
-  # Complete workflow with Excel export
+  # Complete workflow with Excel export (all auctions)
   node cli.js
+
+  # Scrape My List only and export as Excel
+  node cli.js --scraping-mode mylist
 
   # Skip scraping, export existing data as CSV
   node cli.js --skip-scraping --format csv
@@ -162,6 +183,11 @@ async function main() {
         console.log("📋 Configuration:");
         console.log(`📊 Export format: ${options.exportFormat.toUpperCase()}`);
         console.log(`🔄 Skip scraping: ${options.skipScraping ? "Yes" : "No"}`);
+        console.log(
+          `🎯 Scraping mode: ${
+            options.scrapingMode === "mylist" ? "My List" : "All Auctions"
+          }`
+        );
         console.log(
           `👤 Process vAuto: ${
             options.user ? "Yes (" + options.user.vins.length + " VINs)" : "No"
