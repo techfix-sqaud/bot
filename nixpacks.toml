@@ -9,7 +9,28 @@ NODE_ENV = "production"
 
 [phases.setup]
 nixpkgs = ["nodejs_20", "chromium"]
-aptPkgs = ["ca-certificates", "fonts-liberation", "libasound2", "libatk-bridge2.0-0", "libdrm2", "libgtk-3-0", "libnspr4", "libnss3", "libxss1", "libxtst6", "xdg-utils"]
+aptPkgs = [
+  "ca-certificates", 
+  "fonts-liberation", 
+  "libasound2", 
+  "libatk-bridge2.0-0", 
+  "libatk1.0-0",
+  "libdrm2", 
+  "libgtk-3-0", 
+  "libnspr4", 
+  "libnss3", 
+  "libxss1", 
+  "libxtst6", 
+  "xdg-utils",
+  "libgbm1",
+  "libxcomposite1",
+  "libxcursor1",
+  "libxdamage1",
+  "libxfixes3",
+  "libxi6",
+  "libxrandr2",
+  "libxrender1"
+]
 
 [phases.install]
 dependsOn = ["setup"]
@@ -22,3 +43,5 @@ cmds = ["echo 'Build complete'"]
 [variables]
 NODE_ENV = "production"
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
+CHROME_BIN = "chromium"
+PUPPETEER_EXECUTABLE_PATH = "chromium"

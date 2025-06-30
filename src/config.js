@@ -9,11 +9,59 @@ function findChromiumExecutable() {
 
   // First, check if there's an environment variable override
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-    if (fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
+    // If it's just "chromium", try to find it via which command first
+    if (process.env.PUPPETEER_EXECUTABLE_PATH === "chromium") {
+      try {
+        const { execSync } = require("child_process");
+        const chromiumPath = execSync("which chromium", {
+          encoding: "utf8",
+          timeout: 5000,
+        }).trim();
+        if (chromiumPath && fs.existsSync(chromiumPath)) {
+          console.log(`🎯 Found chromium via which command: ${chromiumPath}`);
+          return chromiumPath;
+        }
+      } catch (error) {
+        console.log(
+          `❌ Could not find chromium via which command: ${error.message}`
+        );
+      }
+    } else if (fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
       console.log(
         `🎯 Using browser from PUPPETEER_EXECUTABLE_PATH: ${process.env.PUPPETEER_EXECUTABLE_PATH}`
       );
       return process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+  }
+
+  // Check other environment variables (for Nixpacks and other platforms)
+  const envVars = [
+    process.env.CHROME_BIN,
+    process.env.CHROMIUM_BIN,
+    process.env.GOOGLE_CHROME_BIN,
+  ].filter(Boolean);
+
+  for (const envVar of envVars) {
+    if (envVar === "chromium" || envVar === "chrome") {
+      // Try to resolve via which command
+      try {
+        const { execSync } = require("child_process");
+        const resolvedPath = execSync(`which ${envVar}`, {
+          encoding: "utf8",
+          timeout: 5000,
+        }).trim();
+        if (resolvedPath && fs.existsSync(resolvedPath)) {
+          console.log(`🎯 Found ${envVar} via which command: ${resolvedPath}`);
+          return resolvedPath;
+        }
+      } catch (error) {
+        console.log(
+          `❌ Could not resolve ${envVar} via which command: ${error.message}`
+        );
+      }
+    } else if (fs.existsSync(envVar)) {
+      console.log(`🎯 Using browser from environment variable: ${envVar}`);
+      return envVar;
     }
   }
 
