@@ -38,10 +38,14 @@ cmds = ["npm ci"]
 
 [phases.build]
 dependsOn = ["install"]
-cmds = ["echo 'Build complete'"]
+cmds = [
+  "echo 'Build complete'",
+  "echo 'Checking Chromium installation:'",
+  "which chromium || echo 'chromium not found in PATH'",
+  "ls -la /nix/store/*/bin/chromium* || echo 'chromium not found in nix store'",
+  "find /usr -name chromium* -type f 2>/dev/null || echo 'chromium not found in /usr'"
+]
 
 [variables]
 NODE_ENV = "production"
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
-CHROME_BIN = "chromium"
-PUPPETEER_EXECUTABLE_PATH = "chromium"
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"

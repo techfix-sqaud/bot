@@ -97,13 +97,12 @@ function findChromiumExecutable() {
     ];
     whichCommands = ["chrome", "google-chrome", "chromium"];
   } else {
-    // Linux and other Unix-like systems (including Docker/Alpine)
+    // Linux and other Unix-like systems (including Docker/Alpine/Nixpacks)
     commonPaths = [
-      "/usr/bin/chromium-browser", // Alpine Linux
-      "/usr/bin/chromium", // Alpine Linux alternative
+      "/usr/bin/chromium-browser", // Debian/Ubuntu
+      "/usr/bin/chromium", // Some distributions
       "/usr/bin/google-chrome",
       "/usr/bin/google-chrome-stable",
-      "/usr/bin/chromium-browser",
       "/opt/google/chrome/chrome",
       "/snap/bin/chromium",
       "/usr/local/bin/chromium",
@@ -113,12 +112,32 @@ function findChromiumExecutable() {
       "/usr/bin/google-chrome-beta",
     ];
     whichCommands = [
-      "chromium-browser", // Alpine Linux first
       "chromium",
+      "chromium-browser",
       "google-chrome",
       "google-chrome-stable",
       "chrome",
     ];
+
+    // For Nixpacks, also check nix store paths
+    try {
+      const { execSync } = require("child_process");
+      const nixStoreSearch = execSync(
+        "find /nix/store -name chromium -type f 2>/dev/null | head -1",
+        {
+          encoding: "utf8",
+          timeout: 5000,
+        }
+      ).trim();
+      if (nixStoreSearch && fs.existsSync(nixStoreSearch)) {
+        console.log(`🎯 Found Chromium in Nix store: ${nixStoreSearch}`);
+        commonPaths.unshift(nixStoreSearch);
+      }
+    } catch (error) {
+      console.log(
+        `🔍 Nix store search failed (normal if not using Nixpacks): ${error.message}`
+      );
+    }
   }
 
   // Check common paths first
