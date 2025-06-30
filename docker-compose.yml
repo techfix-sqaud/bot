@@ -13,9 +13,11 @@ services:
       - "3000:3000"
     volumes:
       # Mount data directory for persistent storage
-      - ./data:/usr/src/app/data
+      - ./data:/app/data
       # Add shared memory for browser
       - /dev/shm:/dev/shm
+    # Add shared memory size for browser
+    shm_size: '2gb'
     restart: unless-stopped
     # Add security options for browser
     security_opt:
