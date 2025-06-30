@@ -82,20 +82,26 @@ function findChromiumExecutable() {
           ? browserPath.replace("%USERNAME%", os.userInfo().username)
           : browserPath;
 
+      console.log(`🔍 Checking path: ${expandedPath}`);
       if (fs.existsSync(expandedPath)) {
         console.log(`✅ Found browser at: ${expandedPath}`);
         return expandedPath;
+      } else {
+        console.log(`❌ Browser not found at: ${expandedPath}`);
       }
     } catch (error) {
+      console.log(`❌ Error checking path ${browserPath}: ${error.message}`);
       // Continue to next path
     }
   }
 
   // Try to find browser via which/where commands
+  console.log(`🔍 Trying command-based detection...`);
   for (const command of whichCommands) {
     try {
       const whichCmd =
         platform === "win32" ? `where ${command}` : `which ${command}`;
+      console.log(`🔍 Running: ${whichCmd}`);
       const browserPath = execSync(whichCmd, {
         encoding: "utf8",
         timeout: 5000,
@@ -103,16 +109,23 @@ function findChromiumExecutable() {
         .trim()
         .split("\n")[0]; // Take first result if multiple
 
+      console.log(`🔍 Command result: ${browserPath}`);
       if (browserPath && fs.existsSync(browserPath)) {
         console.log(`✅ Found browser via ${whichCmd}: ${browserPath}`);
         return browserPath;
+      } else if (browserPath) {
+        console.log(
+          `❌ Browser path from command exists but file not found: ${browserPath}`
+        );
       }
     } catch (error) {
+      console.log(`❌ Command ${command} failed: ${error.message}`);
       // Continue to next command
     }
   }
 
   // Try Puppeteer's built-in browser detection
+  console.log(`🔍 Trying Puppeteer's bundled browser...`);
   try {
     const puppeteer = require("puppeteer");
     if (
@@ -120,12 +133,18 @@ function findChromiumExecutable() {
       typeof puppeteer.executablePath === "function"
     ) {
       const puppeteerPath = puppeteer.executablePath();
+      console.log(`🔍 Puppeteer suggested path: ${puppeteerPath}`);
       if (puppeteerPath && fs.existsSync(puppeteerPath)) {
         console.log(`✅ Using Puppeteer's bundled browser: ${puppeteerPath}`);
         return puppeteerPath;
+      } else if (puppeteerPath) {
+        console.log(
+          `❌ Puppeteer path exists but file not found: ${puppeteerPath}`
+        );
       }
     }
   } catch (error) {
+    console.log(`❌ Error accessing Puppeteer: ${error.message}`);
     // Puppeteer might not be installed or available
   }
 
@@ -143,30 +162,39 @@ module.exports = {
   show2FA: process.env.NODE_ENV === "production" ? false : true, // No 2FA display in production
 
   // Puppeteer configuration for deployment
-  puppeteerOptions: {
-    headless: process.env.NODE_ENV === "production" ? "new" : false,
-    args:
-      process.env.NODE_ENV === "production"
-        ? [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--no-first-run",
-            "--no-zygote",
-            "--single-process",
-            "--disable-gpu",
-          ]
-        : [],
-    executablePath: findChromiumExecutable(),
-    protocolTimeout: 120000, // 2 minutes protocol timeout
-  },
+  puppeteerOptions: (() => {
+    const executablePath = findChromiumExecutable();
+    const options = {
+      headless: process.env.NODE_ENV === "production" ? "new" : false,
+      args:
+        process.env.NODE_ENV === "production"
+          ? [
+              "--no-sandbox",
+              "--disable-setuid-sandbox",
+              "--disable-dev-shm-usage",
+              "--disable-accelerated-2d-canvas",
+              "--no-first-run",
+              "--no-zygote",
+              "--single-process",
+              "--disable-gpu",
+            ]
+          : [],
+      protocolTimeout: 120000, // 2 minutes protocol timeout
+    };
+
+    // Only set executablePath if we found a valid one
+    if (executablePath) {
+      options.executablePath = executablePath;
+    }
+
+    return options;
+  })(),
 
   // Get puppeteer options with custom overrides
   getPuppeteerOptions: (overrides = {}) => {
+    const executablePath = findChromiumExecutable();
     const baseOptions = {
       headless: process.env.NODE_ENV === "production" ? "new" : false,
-      executablePath: findChromiumExecutable(),
       protocolTimeout: 120000,
       args: [
         "--no-sandbox",
@@ -186,6 +214,15 @@ module.exports = {
       ],
       ...overrides,
     };
+
+    // Only set executablePath if we found a valid one
+    if (executablePath) {
+      baseOptions.executablePath = executablePath;
+    } else {
+      console.log(
+        `⚠️  No executablePath set - Puppeteer will use its bundled browser or download one`
+      );
+    }
 
     // Merge args arrays if both exist
     if (overrides.args && Array.isArray(overrides.args)) {
