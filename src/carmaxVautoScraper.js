@@ -1,5 +1,5 @@
 const puppeteer = require("puppeteer");
-const { vautoUrl, headless, show2FA } = require("./config");
+const config = require("./config");
 const { saveJSON, loadJSON } = require("./utils");
 require("dotenv").config();
 
@@ -9,7 +9,7 @@ require("dotenv").config();
 async function loginToVAuto(page) {
   console.log("🔐 Logging into vAuto...");
 
-  await page.goto(vautoUrl, { waitUntil: "networkidle2" });
+  await page.goto(config.vautoUrl, { waitUntil: "networkidle2" });
 
   const pageContent = await page.evaluate(() => document.body.textContent);
 
@@ -293,19 +293,19 @@ function formatEvaluationNote(evaluationData) {
  * Main function to enrich existing vehicles with vAuto data
  */
 async function enrichVehiclesWithVAuto() {
-  const browser = await puppeteer.launch({
-    userDataDir: "./user_data",
-    headless: show2FA ? false : headless, // Always show browser if 2FA handling is enabled
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-infobars",
-      "--window-position=0,0",
-      "--ignore-certificate-errors",
-      "--ignore-certificate-errors-spki-list",
-      "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    ],
-  });
+  const browser = await puppeteer.launch(
+    config.getPuppeteerOptions({
+      userDataDir: "./user_data",
+      headless: config.show2FA ? false : config.headless, // Always show browser if 2FA handling is enabled
+      args: [
+        "--disable-infobars",
+        "--window-position=0,0",
+        "--ignore-certificate-errors",
+        "--ignore-certificate-errors-spki-list",
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      ],
+    })
+  );
 
   const vautoPage = await browser.newPage();
 

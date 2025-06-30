@@ -1,31 +1,31 @@
 require("dotenv").config();
 const puppeteer = require("puppeteer");
-const { vautoUrl } = require("./src/config");
+const config = require("./src/config");
 
 /**
  * Test script for vAuto login with 2FA handling
  */
 async function testVAutoLogin() {
-  const browser = await puppeteer.launch({
-    userDataDir: "./user_data",
-    headless: false, // Always show browser for login testing
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-infobars",
-      "--window-position=0,0",
-      "--ignore-certificate-errors",
-      "--ignore-certificate-errors-spki-list",
-      "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    ],
-  });
+  const browser = await puppeteer.launch(
+    config.getPuppeteerOptions({
+      userDataDir: "./user_data",
+      headless: false, // Always show browser for login testing
+      args: [
+        "--disable-infobars",
+        "--window-position=0,0",
+        "--ignore-certificate-errors",
+        "--ignore-certificate-errors-spki-list",
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      ],
+    })
+  );
 
   const page = await browser.newPage();
 
   try {
     console.log("🔐 Testing vAuto login with 2FA handling...");
 
-    await page.goto(vautoUrl, { waitUntil: "networkidle2" });
+    await page.goto(config.vautoUrl, { waitUntil: "networkidle2" });
 
     const pageContent = await page.evaluate(() => document.body.textContent);
 

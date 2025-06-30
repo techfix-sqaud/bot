@@ -27,7 +27,7 @@ const puppeteer = require("puppeteer");
 async function testBrowserLaunch() {
   try {
     console.log("🚀 Testing browser launch...");
-    const browser = await puppeteer.launch(config.puppeteerOptions);
+    const browser = await puppeteer.launch(config.getPuppeteerOptions());
     console.log("✅ Browser launched successfully!");
 
     const version = await browser.version();

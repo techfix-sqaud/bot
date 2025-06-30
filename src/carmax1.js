@@ -1,9 +1,9 @@
 const puppeteer = require("puppeteer");
-const { carmaxUrl, headless } = require("./config");
+const config = require("./config");
 const { saveJSON } = require("./utils");
 
 async function login(page) {
-  await page.goto(carmaxUrl, { waitUntil: "networkidle2" });
+  await page.goto(config.carmaxUrl, { waitUntil: "networkidle2" });
   await page.waitForSelector("hzn-button");
   await page.evaluate(() => {
     const btn = document.querySelector("hzn-button");
@@ -373,15 +373,15 @@ async function loadAllVehicles(page) {
         "tbody tr",
         ".MuiTableBody-root tr",
         '[role="row"]',
-        '[data-index]' // Add data-index selector
+        "[data-index]", // Add data-index selector
       ];
-      
+
       const counts = selectors.map((sel) => {
         const count = document.querySelectorAll(sel).length;
         console.log(`Selector "${sel}": ${count} elements`);
         return count;
       });
-      
+
       return Math.max(...counts);
     };
 
@@ -400,7 +400,11 @@ async function loadAllVehicles(page) {
       const loadMoreBtn = Array.from(document.querySelectorAll("button")).find(
         (btn) => {
           const btnText = btn.textContent?.trim().toUpperCase();
-          return btnText.includes("SEE MORE") || btnText.includes("LOAD MORE") || btnText.includes("SHOW MORE");
+          return (
+            btnText.includes("SEE MORE") ||
+            btnText.includes("LOAD MORE") ||
+            btnText.includes("SHOW MORE")
+          );
         }
       );
 
@@ -411,7 +415,9 @@ async function loadAllVehicles(page) {
         !loadMoreBtn.style.visibility === "hidden"
       ) {
         console.log(
-          `📋 Clicking "${loadMoreBtn.textContent?.trim()}" button (attempt ${attempts + 1})`
+          `📋 Clicking "${loadMoreBtn.textContent?.trim()}" button (attempt ${
+            attempts + 1
+          })`
         );
         loadMoreBtn.click();
         await new Promise((resolve) => setTimeout(resolve, 3000)); // Increased wait time
@@ -419,14 +425,16 @@ async function loadAllVehicles(page) {
         // Debug: check what buttons are available
         if (attempts === 0) {
           const allButtons = Array.from(document.querySelectorAll("button"))
-            .map(btn => btn.textContent?.trim())
-            .filter(text => text && text.length > 0)
+            .map((btn) => btn.textContent?.trim())
+            .filter((text) => text && text.length > 0)
             .slice(0, 10);
           console.log(`Available buttons: ${JSON.stringify(allButtons)}`);
         }
-        
+
         // Scroll to bottom
-        console.log(`📜 Scrolling to load more vehicles (attempt ${attempts + 1})`);
+        console.log(
+          `📜 Scrolling to load more vehicles (attempt ${attempts + 1})`
+        );
         if (scrollContainer === document.documentElement) {
           window.scrollTo(0, document.body.scrollHeight);
         } else {
@@ -443,19 +451,21 @@ async function loadAllVehicles(page) {
       );
 
       if (newCount <= initialCount) {
-        console.log(`⏹️ No new vehicles loaded, stopping after ${attempts + 1} attempts`);
+        console.log(
+          `⏹️ No new vehicles loaded, stopping after ${attempts + 1} attempts`
+        );
         break;
       }
       attempts++;
     }
 
     console.log(`✅ Completed loading vehicles after ${attempts} attempts`);
-    
+
     // Final count with all selectors for debugging
     console.log(`🔍 Final vehicle count check:`);
     const finalCount = countVehicles();
     console.log(`📊 Total vehicles found: ${finalCount}`);
-    
+
     // Scroll back to top
     window.scrollTo(0, 0);
   });
@@ -746,7 +756,7 @@ async function extractVehicleData(
 async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
   try {
     console.log(`🔙 Going back to previous page...`);
-    
+
     // Try going back first
     await page.goBack({ waitUntil: "networkidle2", timeout: 15000 });
     await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -765,13 +775,21 @@ async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
 
     try {
       // Try navigating to the original URL instead
-      await page.goto(originalUrl, { waitUntil: "networkidle2", timeout: 15000 });
+      await page.goto(originalUrl, {
+        waitUntil: "networkidle2",
+        timeout: 15000,
+      });
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      
+
       // Wait for auction cards
       await page.waitForSelector(auctionsSelector, { timeout: 10000 });
-      const cardCount = await page.$$eval(auctionsSelector, (els) => els.length);
-      console.log(`✅ Successfully navigated to original URL (${cardCount} cards found)`);
+      const cardCount = await page.$$eval(
+        auctionsSelector,
+        (els) => els.length
+      );
+      console.log(
+        `✅ Successfully navigated to original URL (${cardCount} cards found)`
+      );
     } catch (urlError) {
       console.log(`⚠️ URL navigation failed: ${urlError.message}`);
       console.log(`🔄 Attempting page refresh...`);
@@ -793,19 +811,19 @@ async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
 async function switchToDetailedTableView(page) {
   try {
     console.log("🔍 Looking for detailed table view button...");
-    
+
     const result = await page.evaluate(() => {
       // Look for the detailed table view button with multiple selectors
       const selectors = [
         '[data-testid="detailed"]',
         'button[value="detailed"]',
         'button[aria-label="Detailed table View"]',
-        '.MuiToggleButton-root[value="detailed"]'
+        '.MuiToggleButton-root[value="detailed"]',
       ];
-      
+
       let detailedButton = null;
-      let usedSelector = '';
-      
+      let usedSelector = "";
+
       for (const selector of selectors) {
         detailedButton = document.querySelector(selector);
         if (detailedButton) {
@@ -823,57 +841,63 @@ async function switchToDetailedTableView(page) {
         console.log(`Found detailed button with selector: ${usedSelector}`);
         console.log(`Button already selected: ${isSelected}`);
         console.log(`Button classes: ${detailedButton.className}`);
-        console.log(`Button aria-pressed: ${detailedButton.getAttribute("aria-pressed")}`);
+        console.log(
+          `Button aria-pressed: ${detailedButton.getAttribute("aria-pressed")}`
+        );
 
         if (!isSelected) {
           console.log("🔄 Clicking detailed table view button...");
           detailedButton.click();
-          return { success: true, action: 'clicked' };
+          return { success: true, action: "clicked" };
         } else {
           console.log("✅ Already in detailed table view");
-          return { success: true, action: 'already_selected' };
+          return { success: true, action: "already_selected" };
         }
       } else {
         console.log("⚠️ Detailed table view button not found");
-        
+
         // Debug: let's see what buttons are available
-        const allButtons = document.querySelectorAll('button');
+        const allButtons = document.querySelectorAll("button");
         console.log(`Found ${allButtons.length} buttons on page`);
-        
-        const toggleButtons = document.querySelectorAll('.MuiToggleButton-root, [role="group"] button');
+
+        const toggleButtons = document.querySelectorAll(
+          '.MuiToggleButton-root, [role="group"] button'
+        );
         console.log(`Found ${toggleButtons.length} toggle buttons`);
-        
+
         if (toggleButtons.length > 0) {
-          const buttonInfo = Array.from(toggleButtons).map(btn => ({
-            value: btn.getAttribute('value'),
-            testId: btn.getAttribute('data-testid'),
-            ariPressed: btn.getAttribute('aria-pressed'),
+          const buttonInfo = Array.from(toggleButtons).map((btn) => ({
+            value: btn.getAttribute("value"),
+            testId: btn.getAttribute("data-testid"),
+            ariPressed: btn.getAttribute("aria-pressed"),
             classes: btn.className,
-            text: btn.textContent?.trim().substring(0, 50)
+            text: btn.textContent?.trim().substring(0, 50),
           }));
-          console.log('Toggle button info:', JSON.stringify(buttonInfo, null, 2));
+          console.log(
+            "Toggle button info:",
+            JSON.stringify(buttonInfo, null, 2)
+          );
         }
-        
-        return { success: false, action: 'not_found' };
+
+        return { success: false, action: "not_found" };
       }
     });
 
     if (result.success) {
       // Wait for view to change
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      
-      if (result.action === 'clicked') {
+
+      if (result.action === "clicked") {
         console.log("✅ Successfully clicked detailed table view button");
       } else {
         console.log("✅ Already in detailed table view");
       }
-      
+
       return true;
     } else {
       console.log("❌ Failed to switch to detailed table view");
       return false;
     }
-    
   } catch (error) {
     console.log(`⚠️ Error switching to detailed view: ${error.message}`);
     return false;
@@ -881,17 +905,7 @@ async function switchToDetailedTableView(page) {
 }
 
 async function scrapeAuctions() {
-  const browser = await puppeteer.launch({
-    headless,
-    protocolTimeout: 120000, // 2 minutes protocol timeout
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-web-security",
-      "--disable-features=VizDisplayCompositor",
-    ],
-  });
+  const browser = await puppeteer.launch(config.getPuppeteerOptions());
   const page = await browser.newPage();
 
   // Set longer timeouts for page operations

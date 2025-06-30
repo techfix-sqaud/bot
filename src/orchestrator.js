@@ -3,6 +3,27 @@ const annotateUser = require("./vautoAnnotator");
 const { exportData, getMostRecentFile } = require("./utils");
 
 /**
+ * Utility function to check if a job has been cancelled
+ * @param {string} jobId - The job ID to check
+ * @returns {boolean} - True if the job has been cancelled
+ */
+function isJobCancelled(jobId) {
+  if (!jobId || !global.jobCancellation) return false;
+  return global.jobCancellation[jobId] === true;
+}
+
+/**
+ * Utility function to throw cancellation error if job is cancelled
+ * @param {string} jobId - The job ID to check
+ * @param {string} stage - The current stage name for error message
+ */
+function checkCancellation(jobId, stage = "operation") {
+  if (isJobCancelled(jobId)) {
+    throw new Error(`Job was cancelled during ${stage}`);
+  }
+}
+
+/**
  * Main orchestrator that handles the complete workflow:
  * 1. Scrape CarMax auctions (generates date-based JSON)
  * 2. Run vAuto annotation on the scraped data
@@ -220,11 +241,11 @@ class VehicleDataOrchestrator {
   /**
    * Run only CarMax scraping
    */
-  async runCarmaxOnly() {
+  async runCarmaxOnly(jobId = null) {
     console.log("🚗 Running CarMax scraping only...");
 
     const scrapeAuctions = require("./carmaxScraper");
-    const results = await scrapeAuctions();
+    const results = await scrapeAuctions(jobId);
 
     console.log(
       `✅ CarMax scraping completed. Found ${results.vehicles.length} vehicles`
@@ -245,7 +266,7 @@ class VehicleDataOrchestrator {
   /**
    * Run vAuto annotation on the latest vehicle file
    */
-  async runVautoOnLatest() {
+  async runVautoOnLatest(jobId = null) {
     console.log("🔍 Running vAuto annotation on latest file...");
 
     // Get the most recent file
@@ -283,6 +304,7 @@ class VehicleDataOrchestrator {
     const results = await annotateUser(user, {
       inputFile: latestFile,
       exportFormat: "json",
+      jobId: jobId,
     });
 
     console.log("✅ vAuto annotation completed!");

@@ -30,11 +30,13 @@ async function debugTest() {
 
   try {
     const puppeteer = require("puppeteer");
-    const browser = await puppeteer.launch({
-      headless: false, // Show browser for debugging
-      userDataDir: "./user_data",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+    const config = require("./src/config");
+    const browser = await puppeteer.launch(
+      config.getPuppeteerOptions({
+        headless: false, // Show browser for debugging
+        userDataDir: "./user_data",
+      })
+    );
 
     const page = await browser.newPage();
 

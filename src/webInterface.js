@@ -202,6 +202,7 @@ app.post("/api/scrape", async (req, res) => {
 
     // Store job status
     global.jobStatus = global.jobStatus || {};
+    global.jobCancellation = global.jobCancellation || {};
     global.jobStatus[jobId] = {
       status: "starting",
       stage: "carmax",
@@ -209,7 +210,9 @@ app.post("/api/scrape", async (req, res) => {
       startTime: new Date(),
       carmaxFile: null,
       finalFile: null,
+      cancellable: true,
     };
+    global.jobCancellation[jobId] = false;
 
     res.json({
       message: "Scraping job started",
@@ -220,27 +223,59 @@ app.post("/api/scrape", async (req, res) => {
     // Run workflow in background
     (async () => {
       try {
+        // Check for cancellation before starting
+        if (global.jobCancellation[jobId]) {
+          global.jobStatus[jobId].status = "cancelled";
+          global.jobStatus[jobId].message = "Job was cancelled before starting";
+          global.jobStatus[jobId].endTime = new Date();
+          return;
+        }
+
         const orchestrator = new VehicleDataOrchestrator();
 
         // Update status
         global.jobStatus[jobId].status = "running";
         global.jobStatus[jobId].message = "Scraping CarMax data...";
 
-        // Step 1: Run CarMax scraper
-        const carmaxResults = await orchestrator.runCarmaxOnly();
+        // Step 1: Run CarMax scraper with cancellation support
+        const carmaxResults = await orchestrator.runCarmaxOnly(jobId);
+
+        // Check for cancellation after CarMax
+        if (global.jobCancellation[jobId] || carmaxResults.cancelled) {
+          global.jobStatus[jobId].status = "cancelled";
+          global.jobStatus[jobId].message =
+            "Job was cancelled during CarMax scraping";
+          global.jobStatus[jobId].endTime = new Date();
+          global.jobStatus[jobId].partialResults = carmaxResults;
+          return;
+        }
 
         global.jobStatus[jobId].carmaxFile = carmaxResults.jsonFile;
         global.jobStatus[jobId].stage = "vauto";
         global.jobStatus[jobId].message =
           "CarMax completed. Running vAuto annotation...";
 
-        // Step 2: Run vAuto on the latest file
-        const vautoResults = await orchestrator.runVautoOnLatest();
+        // Step 2: Run vAuto on the latest file with cancellation support
+        const vautoResults = await orchestrator.runVautoOnLatest(jobId);
+
+        // Check for cancellation after vAuto
+        if (global.jobCancellation[jobId] || vautoResults.cancelled) {
+          global.jobStatus[jobId].status = "cancelled";
+          global.jobStatus[jobId].message =
+            "Job was cancelled during vAuto annotation";
+          global.jobStatus[jobId].endTime = new Date();
+          global.jobStatus[jobId].partialResults = {
+            carmaxResults,
+            vautoResults,
+          };
+          return;
+        }
 
         global.jobStatus[jobId].finalFile = vautoResults.jsonFile;
         global.jobStatus[jobId].status = "completed";
         global.jobStatus[jobId].message = "Scraping completed successfully";
         global.jobStatus[jobId].endTime = new Date();
+        global.jobStatus[jobId].cancellable = false;
         global.jobStatus[jobId].results = {
           carmaxVehicles: carmaxResults.summary.total,
           vautoProcessed: vautoResults.summary.successful,
@@ -249,10 +284,21 @@ app.post("/api/scrape", async (req, res) => {
 
         console.log("✅ Complete scraping workflow finished");
       } catch (error) {
-        global.jobStatus[jobId].status = "failed";
-        global.jobStatus[jobId].message = error.message;
-        global.jobStatus[jobId].endTime = new Date();
-        console.error("❌ Scraping failed:", error.message);
+        // Check if this was a cancellation
+        if (error.message && error.message.includes("cancelled")) {
+          global.jobStatus[jobId].status = "cancelled";
+          global.jobStatus[jobId].message =
+            "Job was cancelled: " + error.message;
+          global.jobStatus[jobId].endTime = new Date();
+          global.jobStatus[jobId].cancellable = false;
+          console.log("🛑 Scraping workflow was cancelled:", error.message);
+        } else {
+          global.jobStatus[jobId].status = "failed";
+          global.jobStatus[jobId].message = error.message;
+          global.jobStatus[jobId].endTime = new Date();
+          global.jobStatus[jobId].cancellable = false;
+          console.error("❌ Scraping failed:", error.message);
+        }
       }
     })();
   } catch (error) {
@@ -274,6 +320,45 @@ app.get("/api/scrape/status/:jobId", async (req, res) => {
     res.json(status);
   } catch (error) {
     res.status(500).json({ error: "Failed to get job status" });
+  }
+});
+
+// Cancel a running job
+app.post("/api/scrape/cancel/:jobId", async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    if (!global.jobStatus || !global.jobStatus[jobId]) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    const job = global.jobStatus[jobId];
+
+    if (job.status !== "running" && job.status !== "starting") {
+      return res.status(400).json({
+        error: "Job is not running and cannot be cancelled",
+        currentStatus: job.status,
+      });
+    }
+
+    // Set cancellation flag
+    global.jobCancellation = global.jobCancellation || {};
+    global.jobCancellation[jobId] = true;
+
+    // Update job status
+    job.status = "cancelling";
+    job.message = "Cancellation requested, stopping gracefully...";
+    job.cancellable = false;
+
+    console.log(`🛑 Cancellation requested for job ${jobId}`);
+
+    res.json({
+      message: "Cancellation requested",
+      jobId,
+      status: "cancelling",
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to cancel job: " + error.message });
   }
 });
 
@@ -488,6 +573,14 @@ app.get("/", (req, res) => {
         .button.success {
           background: linear-gradient(135deg, #28a745, #218838);
         }
+        .button.cancel {
+          background: linear-gradient(135deg, #ffc107, #e0a800);
+          color: #212529;
+        }
+        .button.cancel:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(255,193,7,0.3);
+        }
         .section {
           margin: 20px 0;
           padding: 15px;
@@ -698,6 +791,7 @@ app.get("/", (req, res) => {
             <div class="spinner"></div>
             <p>Processing... This may take several minutes.</p>
             <div id="statusDetails"></div>
+            <button id="cancelButton" class="button cancel" onclick="cancelScraping()" style="display: none; margin-top: 15px;">🛑 Cancel Scraping</button>
           </div>
         </div>
 
@@ -722,6 +816,7 @@ app.get("/", (req, res) => {
           try {
             document.getElementById('scrapingStatus').style.display = 'block';
             document.getElementById('statusDetails').innerHTML = 'Starting scraping process...';
+            document.getElementById('cancelButton').style.display = 'none';
             
             const response = await fetch('/api/scrape', {
               method: 'POST',
@@ -732,11 +827,43 @@ app.get("/", (req, res) => {
             const result = await response.json();
             currentJobId = result.jobId;
             
+            // Show cancel button
+            document.getElementById('cancelButton').style.display = 'inline-block';
+            
             // Start checking status
             statusCheckInterval = setInterval(checkScrapingStatus, 2000);
             
           } catch (error) {
             document.getElementById('statusDetails').innerHTML = 'Error: ' + error.message;
+            document.getElementById('cancelButton').style.display = 'none';
+          }
+        }
+
+        async function cancelScraping() {
+          if (!currentJobId) return;
+          
+          try {
+            document.getElementById('cancelButton').disabled = true;
+            document.getElementById('cancelButton').textContent = '🔄 Cancelling...';
+            
+            const response = await fetch('/api/scrape/cancel/' + currentJobId, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+              document.getElementById('statusDetails').innerHTML = 'Cancellation requested. Waiting for graceful shutdown...';
+            } else {
+              alert('Failed to cancel: ' + result.error);
+              document.getElementById('cancelButton').disabled = false;
+              document.getElementById('cancelButton').textContent = '🛑 Cancel Scraping';
+            }
+          } catch (error) {
+            alert('Error cancelling job: ' + error.message);
+            document.getElementById('cancelButton').disabled = false;
+            document.getElementById('cancelButton').textContent = '🛑 Cancel Scraping';
           }
         }
 
@@ -754,6 +881,16 @@ app.get("/", (req, res) => {
             
             document.getElementById('statusDetails').innerHTML = statusText;
             
+            // Show/hide cancel button based on status
+            const cancelButton = document.getElementById('cancelButton');
+            if (status.cancellable && (status.status === 'running' || status.status === 'starting')) {
+              cancelButton.style.display = 'inline-block';
+              cancelButton.disabled = false;
+              cancelButton.textContent = '🛑 Cancel Scraping';
+            } else {
+              cancelButton.style.display = 'none';
+            }
+            
             if (status.status === 'completed') {
               clearInterval(statusCheckInterval);
               document.getElementById('scrapingStatus').style.display = 'none';
@@ -762,6 +899,19 @@ app.get("/", (req, res) => {
             } else if (status.status === 'failed') {
               clearInterval(statusCheckInterval);
               document.getElementById('statusDetails').innerHTML = 'Failed: ' + status.message;
+              cancelButton.style.display = 'none';
+            } else if (status.status === 'cancelled') {
+              clearInterval(statusCheckInterval);
+              let cancelMessage = 'Job was cancelled: ' + status.message;
+              if (status.partialResults) {
+                cancelMessage += '<br><br>📊 Partial results were saved and are available in the files list.';
+              }
+              document.getElementById('statusDetails').innerHTML = cancelMessage;
+              cancelButton.style.display = 'none';
+              alert('Scraping was cancelled. Check the files list for any partial results.');
+              refreshFiles();
+            } else if (status.status === 'cancelling') {
+              cancelButton.style.display = 'none';
             }
           } catch (error) {
             console.error('Status check failed:', error);
@@ -900,3 +1050,34 @@ if (require.main === module) {
     console.log(`🌐 Web interface running on port ${PORT}`);
   });
 }
+
+// Cleanup old job statuses (run every hour)
+setInterval(() => {
+  if (global.jobStatus) {
+    const now = new Date();
+    const oldJobs = [];
+
+    for (const [jobId, job] of Object.entries(global.jobStatus)) {
+      const jobAge = now - new Date(job.startTime);
+      const maxAge = 4 * 60 * 60 * 1000; // 4 hours
+
+      if (
+        jobAge > maxAge &&
+        ["completed", "failed", "cancelled"].includes(job.status)
+      ) {
+        oldJobs.push(jobId);
+      }
+    }
+
+    oldJobs.forEach((jobId) => {
+      delete global.jobStatus[jobId];
+      if (global.jobCancellation) {
+        delete global.jobCancellation[jobId];
+      }
+    });
+
+    if (oldJobs.length > 0) {
+      console.log(`🧹 Cleaned up ${oldJobs.length} old job statuses`);
+    }
+  }
+}, 60 * 60 * 1000); // Run every hour

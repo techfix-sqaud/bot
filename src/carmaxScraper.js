@@ -1,9 +1,9 @@
 const puppeteer = require("puppeteer");
-const { carmaxUrl, headless } = require("./config");
+const config = require("./config");
 const { saveJSON, generateDateFilename } = require("./utils");
 
 async function login(page) {
-  await page.goto(carmaxUrl, { waitUntil: "networkidle2" });
+  await page.goto(config.carmaxUrl, { waitUntil: "networkidle2" });
   await page.waitForSelector("hzn-button");
   await page.evaluate(() => {
     const btn = document.querySelector("hzn-button");
@@ -583,29 +583,32 @@ async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
   }
 }
 
-async function scrapeAuctions() {
-  const browser = await puppeteer.launch({
-    headless,
-    protocolTimeout: 120000, // 2 minutes protocol timeout
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-web-security",
-      "--disable-features=VizDisplayCompositor",
-    ],
-  });
+async function scrapeAuctions(jobId = null) {
+  const browser = await puppeteer.launch(config.getPuppeteerOptions());
   const page = await browser.newPage();
 
   // Set longer timeouts for page operations
   page.setDefaultTimeout(60000); // 60 seconds default timeout
   page.setDefaultNavigationTimeout(60000); // 60 seconds navigation timeout
 
+  // Utility function to check for cancellation
+  const checkCancellation = () => {
+    if (jobId && global.jobCancellation && global.jobCancellation[jobId]) {
+      throw new Error("Job was cancelled by user request");
+    }
+  };
+
   try {
+    checkCancellation(); // Check before starting
+
     await login(page);
     console.log("✅ Login completed");
 
+    checkCancellation(); // Check after login
+
     const auctionsSelector = await navigateToAuctions(page);
+
+    checkCancellation(); // Check after navigation
 
     // Wait for auction cards to load after clicking "Show all auctions"
     await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -639,6 +642,8 @@ async function scrapeAuctions() {
     const maxAuctionsToProcess = Math.min(auctionCards.length, 10); // Process max 10 auctions to avoid long runtime
 
     for (let i = 0; i < maxAuctionsToProcess; i++) {
+      checkCancellation(); // Check before processing each auction
+
       console.log(
         `🔍 Processing auction ${i + 1} of ${maxAuctionsToProcess} (out of ${
           auctionCards.length
@@ -766,6 +771,23 @@ async function scrapeAuctions() {
 
     return { vehicles, filename };
   } catch (error) {
+    // Check if this was a cancellation
+    if (error.message && error.message.includes("cancelled")) {
+      console.log("🛑 CarMax scraping was cancelled");
+      const filename = generateDateFilename("vehicles_cancelled");
+      saveJSON(filename, vehicles); // Save whatever we got so far
+      return {
+        vehicles,
+        filename,
+        cancelled: true,
+        summary: {
+          total: vehicles.length,
+          successful: vehicles.length,
+          failed: 0,
+        },
+      };
+    }
+
     console.error("❌ Error in scrapeAuctions:", error.message);
     throw error;
   } finally {

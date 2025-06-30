@@ -1,5 +1,5 @@
 const puppeteer = require("puppeteer");
-const { vautoUrl, headless } = require("./config");
+const config = require("./config");
 const {
   loadJSON,
   summarizeVehicle,
@@ -29,7 +29,10 @@ async function loginToVAuto(page) {
 
     console.log(`📧 Using username: ${vautoUser.substring(0, 3)}***`);
 
-    await page.goto(vautoUrl, { waitUntil: "networkidle2", timeout: 60000 });
+    await page.goto(config.vautoUrl, {
+      waitUntil: "networkidle2",
+      timeout: 60000,
+    });
 
     // Check if already logged in
     const pageContent = await page.evaluate(() => document.body.textContent);
@@ -269,26 +272,35 @@ async function annotateUser(user, options = {}) {
     inputFile = null,
     exportFormat = "xlsx",
     exportFilename = null,
+    jobId = null,
   } = options;
 
   console.log(`🚀 Starting vAuto annotation for user: ${user.email}`);
 
-  const browser = await puppeteer.launch({
-    headless,
-    userDataDir: "./user_data", // Persistent browser profile for session management
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-infobars",
-      "--ignore-certificate-errors",
-      "--ignore-certificate-errors-spki-list",
-      "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    ],
-  });
+  // Utility function to check for cancellation
+  const checkCancellation = () => {
+    if (jobId && global.jobCancellation && global.jobCancellation[jobId]) {
+      throw new Error("Job was cancelled by user request");
+    }
+  };
+
+  const browser = await puppeteer.launch(
+    config.getPuppeteerOptions({
+      userDataDir: "./user_data", // Persistent browser profile for session management
+      args: [
+        "--disable-infobars",
+        "--ignore-certificate-errors",
+        "--ignore-certificate-errors-spki-list",
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      ],
+    })
+  );
 
   const page = await browser.newPage();
 
   try {
+    checkCancellation(); // Check before starting
+
     // Load vehicle data - use specified file or find the most recent one
     let dataFile = inputFile;
     if (!dataFile) {
@@ -320,6 +332,8 @@ async function annotateUser(user, options = {}) {
       return;
     }
 
+    checkCancellation(); // Check before login
+
     // Login to vAuto
     await loginToVAuto(page);
 
@@ -327,6 +341,8 @@ async function annotateUser(user, options = {}) {
 
     // Process each vehicle
     for (const vehicle of candidates) {
+      checkCancellation(); // Check before processing each vehicle
+
       console.log(`\n🔄 Processing: ${summarizeVehicle(vehicle)}`);
 
       try {
@@ -437,6 +453,34 @@ async function annotateUser(user, options = {}) {
       },
     };
   } catch (error) {
+    // Check if this was a cancellation
+    if (error.message && error.message.includes("cancelled")) {
+      console.log("🛑 vAuto annotation was cancelled");
+
+      // Save whatever results we got so far
+      if (results && results.length > 0) {
+        const annotatedFilename = generateDateFilename(
+          "vehicles_annotated_cancelled"
+        );
+        saveJSON(annotatedFilename, results);
+        console.log(`💾 Partial results saved to: ${annotatedFilename}`);
+
+        const successful = results.filter((r) => r.evaluationSuccess).length;
+        return {
+          results,
+          jsonFile: annotatedFilename,
+          cancelled: true,
+          summary: {
+            total: results.length,
+            successful,
+            failed: results.length - successful,
+          },
+        };
+      }
+
+      throw error; // Re-throw if no results to save
+    }
+
     console.error("❌ Fatal error during annotation:", error.message);
     throw error;
   } finally {
