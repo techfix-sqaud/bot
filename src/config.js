@@ -26,6 +26,28 @@ function findChromiumExecutable() {
           `❌ Could not find chromium via which command: ${error.message}`
         );
       }
+
+      // If which command failed, try alternative commands and paths for chromium
+      const chromiumAlternatives = [
+        "chromium-browser",
+        "google-chrome",
+        "google-chrome-stable",
+      ];
+
+      for (const cmd of chromiumAlternatives) {
+        try {
+          const altPath = execSync(`which ${cmd}`, {
+            encoding: "utf8",
+            timeout: 5000,
+          }).trim();
+          if (altPath && fs.existsSync(altPath)) {
+            console.log(`🎯 Found ${cmd} as chromium alternative: ${altPath}`);
+            return altPath;
+          }
+        } catch (error) {
+          console.log(`❌ Could not find ${cmd}: ${error.message}`);
+        }
+      }
     } else if (fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
       console.log(
         `🎯 Using browser from PUPPETEER_EXECUTABLE_PATH: ${process.env.PUPPETEER_EXECUTABLE_PATH}`
@@ -220,6 +242,18 @@ function findChromiumExecutable() {
   console.log(
     `⚠️  No browser executable found. Puppeteer will download and use bundled Chromium.`
   );
+
+  // In production/deployment environments, ensure we don't skip Chromium download
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD === "true"
+  ) {
+    console.log("🔧 Forcing Puppeteer to use bundled Chromium in production");
+    delete process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD;
+    delete process.env.PUPPETEER_EXECUTABLE_PATH;
+    delete process.env.CHROME_BIN;
+  }
+
   return undefined;
 }
 
@@ -277,8 +311,14 @@ module.exports = {
     };
 
     // Only set executablePath if we found a valid one
-    if (executablePath) {
+    // In production, prefer to let Puppeteer handle browser download/management
+    if (executablePath && process.env.NODE_ENV !== "production") {
       options.executablePath = executablePath;
+    } else if (process.env.NODE_ENV === "production") {
+      console.log(
+        "🚀 Production mode: letting Puppeteer handle browser management"
+      );
+      // Don't set executablePath - let Puppeteer use its bundled browser
     }
 
     return options;
@@ -339,7 +379,13 @@ module.exports = {
     }
 
     // Only set executablePath if we found a valid one
-    if (executablePath) {
+    // In production, prefer to let Puppeteer handle browser download/management
+    if (executablePath && process.env.NODE_ENV !== "production") {
+      baseOptions.executablePath = executablePath;
+    } else if (process.env.NODE_ENV === "production") {
+      console.log("🚀 Production mode: letting Puppeteer manage browser");
+      // Don't set executablePath - let Puppeteer use its bundled browser
+    } else if (executablePath) {
       baseOptions.executablePath = executablePath;
     } else {
       console.log(

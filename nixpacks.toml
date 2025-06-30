@@ -8,7 +8,7 @@ cmd = "./start-nixpacks.sh"
 NODE_ENV = "production"
 
 [phases.setup]
-nixpkgs = ["nodejs_20", "chromium", "xvfb-run"]
+nixpkgs = ["nodejs_20", "xvfb-run"]
 aptPkgs = [
   "ca-certificates", 
   "fonts-liberation", 
@@ -42,15 +42,10 @@ cmds = ["npm ci"]
 dependsOn = ["install"]
 cmds = [
   "echo 'Build complete'",
-  "echo 'Checking Chromium installation:'",
-  "which chromium || echo 'chromium not found in PATH'",
-  "ls -la /nix/store/*/bin/chromium* || echo 'chromium not found in nix store'",
-  "find /usr -name chromium* -type f 2>/dev/null || echo 'chromium not found in /usr'"
+  "echo 'Puppeteer will download and manage Chromium automatically'"
 ]
 
 [variables]
 NODE_ENV = "production"
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
-PUPPETEER_EXECUTABLE_PATH = "chromium"
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
 DISPLAY = ":99"
-CHROME_BIN = "chromium"
