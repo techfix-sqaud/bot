@@ -1,7 +1,7 @@
 # Multi-stage build for faster builds and smaller images
 FROM node:18-alpine AS base
 
-# Install chromium in Alpine (much faster than Debian)
+# Install chromium and required dependencies in Alpine
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -9,7 +9,33 @@ RUN apk add --no-cache \
     freetype-dev \
     harfbuzz \
     ca-certificates \
-    ttf-freefont
+    ttf-freefont \
+    # Additional dependencies for graphics and shared libraries
+    mesa-gbm \
+    mesa-dri-gallium \
+    udev \
+    ttf-liberation \
+    # X11 and graphics libraries available in Alpine
+    libx11 \
+    libxcomposite \
+    libxcursor \
+    libxdamage \
+    libxext \
+    libxfixes \
+    libxi \
+    libxrandr \
+    libxrender \
+    libxss \
+    libxtst \
+    # Additional libraries that might be needed
+    glib \
+    gtk+3.0 \
+    pango \
+    atk \
+    cairo \
+    gdk-pixbuf \
+    && ln -s /usr/bin/chromium-browser /usr/bin/google-chrome-stable \
+    && ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs && \
@@ -42,7 +68,8 @@ RUN mkdir -p data user_data && \
 
 # Set environment variables
 ENV NODE_ENV=production \
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 USER nodejs
 

@@ -9,11 +9,17 @@ services:
       - NODE_ENV=production
       - MODE=web
       - PORT=3000
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     ports:
       - "3000:3000"
     volumes:
       # Mount data directory for persistent storage
       - ./data:/usr/src/app/data
+      # Add shared memory for browser
+      - /dev/shm:/dev/shm
     restart: unless-stopped
+    # Add security options for browser
+    security_opt:
+      - seccomp:unconfined
     # Web interface mode - provides GUI for managing JSON file
     command: ["node", "src/app.js"]
