@@ -95,7 +95,7 @@ COPY package*.json ./
 RUN npm ci --only=production --silent && npm cache clean --force
 COPY --chown=nodejs:nodejs . .
 
-ENV NODE_ENV=production \
+ENV NODE_ENV=production \ 
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
 
