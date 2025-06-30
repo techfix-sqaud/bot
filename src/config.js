@@ -51,9 +51,10 @@ function findChromiumExecutable() {
   } else {
     // Linux and other Unix-like systems (including Docker/Alpine)
     commonPaths = [
+      "/usr/bin/chromium-browser", // Alpine Linux
+      "/usr/bin/chromium", // Alpine Linux alternative
       "/usr/bin/google-chrome",
       "/usr/bin/google-chrome-stable",
-      "/usr/bin/chromium",
       "/usr/bin/chromium-browser",
       "/opt/google/chrome/chrome",
       "/snap/bin/chromium",
@@ -64,8 +65,8 @@ function findChromiumExecutable() {
       "/usr/bin/google-chrome-beta",
     ];
     whichCommands = [
+      "chromium-browser", // Alpine Linux first
       "chromium",
-      "chromium-browser",
       "google-chrome",
       "google-chrome-stable",
       "chrome",
@@ -202,13 +203,21 @@ module.exports = {
         "--disable-dev-shm-usage",
         "--disable-web-security",
         "--disable-features=VizDisplayCompositor",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--disable-field-trial-config",
+        "--disable-ipc-flooding-protection",
+        "--enable-unsafe-swiftshader",
         ...(process.env.NODE_ENV === "production"
           ? [
               "--disable-accelerated-2d-canvas",
               "--no-first-run",
               "--no-zygote",
               "--single-process",
-              "--disable-gpu",
+              "--disable-extensions",
             ]
           : []),
       ],

@@ -1,35 +1,35 @@
-name: Deploy to Railway
+# name: Deploy to Railway
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+# on:
+#   push:
+#     branches: [ main, master ]
+#   pull_request:
+#     branches: [ main, master ]
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
     
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v4
+#       with:
+#         node-version: '18'
+#         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+#     - name: Install dependencies
+#       run: npm ci
 
-    - name: Run tests (if any)
-      run: npm test --if-present
+#     - name: Run tests (if any)
+#       run: npm test --if-present
 
-    - name: Deploy to Railway
-      uses: railwayapp/railway-deploy@v1.1.1
-      with:
-        railway-token: ${{ secrets.RAILWAY_TOKEN }}
-        service: 'bot'
-      env:
-        NODE_ENV: production
+#     - name: Deploy to Railway
+#       uses: railwayapp/railway-deploy@v1.1.1
+#       with:
+#         railway-token: ${{ secrets.RAILWAY_TOKEN }}
+#         service: 'bot'
+#       env:
+#         NODE_ENV: production
