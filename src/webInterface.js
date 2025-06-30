@@ -176,6 +176,7 @@ app.post("/api/workflow", async (req, res) => {
     } = req.body;
 
     res.json({ message: "Workflow started", jobId: Date.now() });
+    const jobId = Date.now().toString();
 
     // Run workflow in background
     const orchestrator = new VehicleDataOrchestrator();
@@ -186,6 +187,7 @@ app.post("/api/workflow", async (req, res) => {
       user,
       skipScraping,
       exportFormat,
+      jobId,
     });
 
     console.log("✅ Workflow completed:", result);
@@ -197,7 +199,7 @@ app.post("/api/workflow", async (req, res) => {
 // Run scraping with real-time status updates
 app.post("/api/scrape", async (req, res) => {
   try {
-    const { exportFormat = "json" } = req.body;
+    const { exportFormat = "json", scrapingMode = "auctions" } = req.body;
     const jobId = Date.now().toString();
 
     // Store job status
@@ -206,11 +208,14 @@ app.post("/api/scrape", async (req, res) => {
     global.jobStatus[jobId] = {
       status: "starting",
       stage: "carmax",
-      message: "Starting CarMax scraping...",
+      message: `Starting CarMax ${
+        scrapingMode === "mylist" ? "My List" : "auctions"
+      } scraping...`,
       startTime: new Date(),
       carmaxFile: null,
       finalFile: null,
       cancellable: true,
+      scrapingMode,
     };
     global.jobCancellation[jobId] = false;
 
@@ -235,10 +240,17 @@ app.post("/api/scrape", async (req, res) => {
 
         // Update status
         global.jobStatus[jobId].status = "running";
-        global.jobStatus[jobId].message = "Scraping CarMax data...";
+        global.jobStatus[jobId].message = `Scraping CarMax ${
+          scrapingMode === "mylist" ? "My List" : "auctions"
+        } data...`;
 
-        // Step 1: Run CarMax scraper with cancellation support
-        const carmaxResults = await orchestrator.runCarmaxOnly(jobId);
+        // Step 1: Run CarMax scraper with cancellation support based on mode
+        let carmaxResults;
+        if (scrapingMode === "mylist") {
+          carmaxResults = await orchestrator.runMyListOnly(jobId);
+        } else {
+          carmaxResults = await orchestrator.runCarmaxOnly(jobId);
+        }
 
         // Check for cancellation after CarMax
         if (global.jobCancellation[jobId] || carmaxResults.cancelled) {
@@ -375,12 +387,17 @@ app.post("/api/annotate", async (req, res) => {
       return res.status(400).json({ error: "VINs required for annotation" });
     }
 
-    res.json({ message: "Annotation job started", vins: vins.length });
+    res.json({
+      message: "Annotation job started",
+      vins: vins.length,
+      jobId: Date.now(),
+    });
+    const jobId = Date.now().toString();
 
     const orchestrator = new VehicleDataOrchestrator();
     const user = { email: userEmail, vins };
 
-    await orchestrator.runAnnotationOnly(user, { exportFormat });
+    await orchestrator.runAnnotationOnly(user, { exportFormat, jobId });
   } catch (error) {
     console.error("❌ Annotation failed:", error.message);
   }
@@ -638,6 +655,44 @@ app.get("/", (req, res) => {
           min-width: 120px;
         }
         
+        /* Radio button styling */
+        .scraping-options {
+          margin: 15px 0;
+          padding: 15px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          background: #f9f9f9;
+        }
+        .radio-option {
+          display: block;
+          margin: 12px 0;
+          padding: 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          border: 1px solid transparent;
+        }
+        .radio-option:hover {
+          background: #e9f4ff;
+          border-color: #007cba;
+        }
+        .radio-option input[type="radio"] {
+          margin-right: 10px;
+          transform: scale(1.1);
+        }
+        .radio-option input[type="radio"]:checked + .radio-label {
+          font-weight: bold;
+          color: #007cba;
+        }
+        .option-tip {
+          margin-top: 15px;
+          padding: 12px;
+          background: #e3f2fd;
+          border-radius: 6px;
+          font-size: 0.9em;
+          border-left: 4px solid #2196f3;
+        }
+
         /* Mobile responsiveness */
         @media (max-width: 768px) {
           .container {
@@ -785,7 +840,23 @@ app.get("/", (req, res) => {
 
         <div class="section">
           <h3>🚀 Run Vehicle Data Scraper</h3>
-          <p>This will run CarMax scraping first, then vAuto annotation on the results.</p>
+          <p>Choose what to scrape from CarMax:</p>
+          
+          <div class="scraping-options">
+            <h4>🎯 Scraping Options:</h4>
+            <label class="radio-option">
+              <input type="radio" name="scrapingMode" value="auctions" checked>
+              <span class="radio-label">🏁 All Auctions</span> - Scrape vehicles from all available CarMax auctions
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="scrapingMode" value="mylist">
+              <span class="radio-label">📋 My List</span> - Scrape only vehicles saved in your CarMax "My List"
+            </label>
+            <div class="option-tip">
+              <strong>💡 Tip:</strong> Use "My List" to scrape only specific vehicles you've saved, or "All Auctions" to get comprehensive data from all available auctions.
+            </div>
+          </div>
+          
           <button class="button success" onclick="startScraping()">▶️ Start Scraping Process</button>
           <div id="scrapingStatus" class="loading">
             <div class="spinner"></div>
@@ -818,10 +889,16 @@ app.get("/", (req, res) => {
             document.getElementById('statusDetails').innerHTML = 'Starting scraping process...';
             document.getElementById('cancelButton').style.display = 'none';
             
+            // Get selected scraping mode
+            const selectedMode = document.querySelector('input[name="scrapingMode"]:checked').value;
+            
             const response = await fetch('/api/scrape', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ exportFormat: 'json' })
+              body: JSON.stringify({ 
+                exportFormat: 'json',
+                scrapingMode: selectedMode
+              })
             });
             
             const result = await response.json();

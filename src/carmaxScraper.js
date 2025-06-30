@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const config = require("./config");
 const { saveJSON, generateDateFilename } = require("./utils");
+const { annotateVehiclesWithVAuto } = require("./vautoAnnotator");
 
 async function login(page) {
   await page.goto(config.carmaxUrl, { waitUntil: "networkidle2" });
@@ -435,6 +436,7 @@ async function extractVehicleData(
   return await page.evaluate(
     (idx, location, maxVehicles) => {
       const vehicles = [];
+      const seenVINs = new Set(); // Track unique VINs to prevent duplicates
 
       // Find vehicle elements
       const selectors = [
@@ -494,6 +496,14 @@ async function extractVehicleData(
 
           // Validate VIN
           if (vin && vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
+            // Check if we've already seen this VIN to prevent duplicates
+            if (seenVINs.has(vin)) {
+              console.log(`⚠️ Skipping duplicate VIN: ${vin}`);
+              continue;
+            }
+
+            // Add VIN to seen set
+            seenVINs.add(vin);
             // Extract other data
             const ymmt = element
               .querySelector(
@@ -532,9 +542,12 @@ async function extractVehicleData(
               scrapedAt: new Date().toISOString(),
             });
 
-            // Progress logging
-            if (vehicles.length % 25 === 0) {
-              console.log(`✅ Extracted ${vehicles.length} vehicles so far...`);
+            // Enhanced progress logging with percentage
+            if (vehicles.length % 10 === 0 || i === toProcess - 1) {
+              const progress = (((i + 1) / toProcess) * 100).toFixed(1);
+              console.log(
+                `✅ Extracted ${vehicles.length} vehicles so far... (${progress}% of current auction)`
+              );
             }
           }
         } catch (err) {
@@ -543,7 +556,7 @@ async function extractVehicleData(
       }
 
       console.log(
-        `✅ Successfully extracted ${vehicles.length} valid vehicles`
+        `✅ Successfully extracted ${vehicles.length} unique vehicles (found ${seenVINs.size} unique VINs)`
       );
       return vehicles;
     },
@@ -551,6 +564,228 @@ async function extractVehicleData(
     auctionLocation,
     limit
   );
+}
+
+// Helper function to extract vehicle data specifically for My List
+async function extractMyListVehicleData(page, limit = 1000) {
+  return await page.evaluate((maxVehicles) => {
+    const vehicles = [];
+    const seenVINs = new Set(); // Track unique VINs to prevent duplicates
+
+    // Find vehicle elements - My List has specific structure with .vehicle-Tixca
+    const selectors = [
+      ".vehicle-Tixca", // Primary selector based on the provided HTML
+      ".vehicle-list-item",
+      ".saved-vehicle-item",
+      ".mylist-vehicle",
+      '[class*="vehicle-list"]',
+      '[class*="vehicle-row"]',
+      '[class*="vehicle-card"]',
+      '[class*="vehicle"]',
+      '[class*="saved-vehicle"]',
+      '[class*="mylist"]',
+      "tbody tr",
+      ".MuiTableBody-root tr",
+      '[role="row"]',
+      '[data-testid*="vehicle"]',
+      '[data-testid*="saved"]',
+      ".vehicle-item",
+      ".list-item",
+    ];
+
+    let vehicleElements = [];
+    let bestSelector = "";
+
+    for (const selector of selectors) {
+      const elements = document.querySelectorAll(selector);
+      if (elements.length > vehicleElements.length) {
+        vehicleElements = elements;
+        bestSelector = selector;
+      }
+    }
+
+    console.log(
+      `🔍 Found ${vehicleElements.length} vehicles in My List using "${bestSelector}"`
+    );
+
+    const toProcess = Math.min(vehicleElements.length, maxVehicles);
+    console.log(`📋 Processing ${toProcess} vehicles from My List...`);
+
+    for (let i = 0; i < toProcess; i++) {
+      try {
+        const element = vehicleElements[i];
+
+        // Extract VIN - based on the HTML structure: .vehicle-vin-VvhMG span
+        let vin = null;
+        const vinSelectors = [
+          ".vehicle-vin-VvhMG span", // Specific selector from provided HTML
+          ".vehicle-vin-Mc8Le",
+          ".vehicle-vin",
+          '[class*="vehicle-vin"] span',
+          '[class*="vehicle-vin"]',
+          '[class*="vin"] span',
+          '[class*="vin"]',
+          '[data-testid*="vin"]',
+          ".vin",
+        ];
+
+        for (const vinSelector of vinSelectors) {
+          const vinElement = element.querySelector(vinSelector);
+          if (vinElement) {
+            const vinText = vinElement.textContent
+              ?.trim()
+              .replace(/[^A-HJ-NPR-Z0-9]/gi, "");
+            if (vinText && vinText.length === 17) {
+              vin = vinText;
+              break;
+            }
+          }
+        }
+
+        // Fallback VIN extraction from text content
+        if (!vin || vin.length !== 17) {
+          const textContent = element.textContent || "";
+          const vinMatches = textContent.match(/[A-HJ-NPR-Z0-9]{17}/gi);
+          if (vinMatches && vinMatches.length > 0) {
+            vin = vinMatches[0];
+          }
+        }
+
+        // Validate VIN
+        if (vin && vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
+          // Check if we've already seen this VIN to prevent duplicates
+          if (seenVINs.has(vin)) {
+            console.log(`⚠️ Skipping duplicate VIN: ${vin}`);
+            continue;
+          }
+
+          // Add VIN to seen set
+          seenVINs.add(vin);
+          // Extract vehicle heading (YMMT) - based on HTML: .vehicle-heading-irWa8 span
+          let ymmt = null;
+          const ymmtSelectors = [
+            ".vehicle-heading-irWa8 span", // Specific selector from provided HTML
+            ".vehicle-heading-irWa8",
+            ".vehicle-ymmt-I4Jge",
+            ".vehicle-ymmt",
+            '[class*="vehicle-heading"] span',
+            '[class*="vehicle-heading"]',
+            '[class*="ymmt"]',
+            '[class*="vehicle-title"]',
+            '[class*="vehicle-name"]',
+            ".vehicle-details",
+            "h2",
+            "h3",
+            "h4", // Common heading tags for vehicle info
+          ];
+
+          for (const ymmtSelector of ymmtSelectors) {
+            const ymmtElement = element.querySelector(ymmtSelector);
+            if (ymmtElement) {
+              ymmt = ymmtElement.textContent?.trim();
+              if (ymmt && ymmt.length > 5) break; // Basic validation
+            }
+          }
+
+          // Extract run number - based on HTML: .vehicle-run-number-TOWny
+          let runNumber = null;
+          const runNumberSelectors = [
+            ".vehicle-run-number-TOWny", // Specific selector from provided HTML
+            ".vehicle-run-number-yx1uJ",
+            ".vehicle-run-number",
+            '[class*="run-number"]',
+            '[class*="lot-number"]',
+            '[data-testid*="run"]',
+            '[data-testid*="lot"]',
+          ];
+
+          for (const runSelector of runNumberSelectors) {
+            const runElement = element.querySelector(runSelector);
+            if (runElement) {
+              runNumber = runElement.textContent?.trim();
+              if (runNumber) break;
+            }
+          }
+
+          // Extract mileage from vehicle-info-n4bAH area
+          let mileage = null;
+          const mileageSelectors = [
+            ".vehicle-info-n4bAH span", // Look in vehicle info area from HTML
+            ".vehicle-mileage-aQs6j",
+            ".vehicle-mileage",
+            '[class*="vehicle-info"] span',
+            '[class*="mileage"]',
+            '[class*="miles"]',
+            '[data-testid*="mileage"]',
+            '[data-testid*="miles"]',
+          ];
+
+          for (const mileageSelector of mileageSelectors) {
+            const mileageElements = element.querySelectorAll(mileageSelector);
+            for (const mileageElement of mileageElements) {
+              const text = mileageElement.textContent?.trim();
+              if (text && (text.includes("mi") || text.includes("mile"))) {
+                mileage = text;
+                break;
+              }
+            }
+            if (mileage) break;
+          }
+
+          // Extract additional vehicle info (engine, transmission, etc.)
+          let additionalInfo = null;
+          const additionalInfoElements = element.querySelectorAll(
+            ".vehicle-info-n4bAH span"
+          );
+          if (additionalInfoElements.length > 1) {
+            // Usually the second span contains transmission and engine info
+            additionalInfo = additionalInfoElements[1]?.textContent?.trim();
+          }
+
+          // Parse YMMT
+          const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
+          const year = ymmtParts[0] || "Unknown";
+          const make = ymmtParts[1] || "Unknown";
+          const model = ymmtParts[2] || "Unknown";
+          const trim = ymmtParts.slice(3).join(" ") || "Unknown";
+
+          vehicles.push({
+            vin,
+            runNumber: runNumber || "Unknown",
+            year,
+            make,
+            model,
+            trim,
+            mileage: mileage || "Unknown",
+            ymmt: ymmt || "Unknown",
+            additionalInfo: additionalInfo || "Unknown", // Engine, transmission info
+            auctionLocation: "My List",
+            auctionIndex: 1,
+            scrapedAt: new Date().toISOString(),
+            source: "MyList", // Add source identifier
+          });
+
+          // Progress logging
+          if (vehicles.length % 5 === 0 || i === toProcess - 1) {
+            const progress = (((i + 1) / toProcess) * 100).toFixed(1);
+            console.log(
+              `✅ Extracted ${vehicles.length} vehicles from My List... (${progress}% complete)`
+            );
+          }
+        }
+      } catch (err) {
+        console.log(
+          `⚠️ Error processing vehicle ${i + 1} in My List:`,
+          err.message
+        );
+      }
+    }
+
+    console.log(
+      `✅ Successfully extracted ${vehicles.length} unique vehicles from My List (found ${seenVINs.size} unique VINs)`
+    );
+    return vehicles;
+  }, limit);
 }
 
 // Helper function to navigate back to auctions
@@ -583,6 +818,704 @@ async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
   }
 }
 
+// Helper function to navigate to My List
+async function navigateToMyList(page) {
+  console.log("🔍 Looking for 'My List' link...");
+
+  try {
+    // Wait for the page to load and look for navigation container
+    console.log("⏳ Waiting for page elements to load...");
+    await page.waitForSelector("body", { timeout: 10000 });
+
+    // Give the page more time to fully load
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // First, let's debug what's actually on the page
+    console.log("🔍 Debugging page content...");
+    const debugInfo = await page.evaluate(() => {
+      const currentUrl = window.location.href;
+      const pageTitle = document.title;
+
+      // Look for all links on the page
+      const allLinks = Array.from(document.querySelectorAll("a"));
+      const linkInfo = allLinks.slice(0, 20).map((link) => ({
+        href: link.href,
+        text: link.textContent?.trim().substring(0, 50),
+        className:
+          typeof link.className === "string"
+            ? link.className
+            : link.className?.toString() || "",
+      }));
+
+      // Look for any element containing "my list", "mylist", "saved", etc.
+      const potentialMyListElements = Array.from(document.querySelectorAll("*"))
+        .filter((el) => {
+          const text = el.textContent?.toLowerCase() || "";
+          const href = el.href?.toLowerCase() || "";
+          // Safely get className as string
+          const className = (
+            typeof el.className === "string"
+              ? el.className
+              : el.className?.toString() || ""
+          ).toLowerCase();
+          return (
+            text.includes("my list") ||
+            text.includes("mylist") ||
+            text.includes("saved") ||
+            text.includes("favorites") ||
+            href.includes("mylist") ||
+            href.includes("saved") ||
+            className.includes("mylist") ||
+            className.includes("saved")
+          );
+        })
+        .slice(0, 10)
+        .map((el) => ({
+          tagName: el.tagName,
+          text: el.textContent?.trim().substring(0, 100),
+          href: el.href || "",
+          className:
+            typeof el.className === "string"
+              ? el.className
+              : el.className?.toString() || "",
+        }));
+
+      return {
+        currentUrl,
+        pageTitle,
+        totalLinks: allLinks.length,
+        linkInfo,
+        potentialMyListElements,
+      };
+    });
+
+    console.log("📊 Page Debug Info:", {
+      url: debugInfo.currentUrl,
+      title: debugInfo.pageTitle,
+      totalLinks: debugInfo.totalLinks,
+    });
+
+    console.log("🔗 Available links (first 20):");
+    debugInfo.linkInfo.forEach((link, index) => {
+      console.log(`  ${index + 1}. "${link.text}" -> ${link.href}`);
+    });
+
+    console.log("🎯 Potential My List elements:");
+    debugInfo.potentialMyListElements.forEach((el, index) => {
+      console.log(
+        `  ${index + 1}. ${el.tagName}: "${el.text}" (href: ${el.href})`
+      );
+    });
+
+    // Find and click the "My List" link using enhanced logic
+    const navigationResult = await page.evaluate(() => {
+      const results = [];
+
+      // Strategy 1: Try exact href patterns
+      const hrefSelectors = [
+        'a[href="/mylist"]',
+        'a[href*="/mylist"]',
+        'a[href*="/my-list"]',
+        'a[href*="mylist"]',
+        'a[href*="my-list"]',
+        'a[href*="favorites"]',
+        'a[href*="saved"]',
+        'a[href*="wishlist"]',
+        'a[href*="saved-vehicles"]',
+      ];
+
+      for (const selector of hrefSelectors) {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > 0) {
+          results.push({
+            strategy: "href_pattern",
+            selector,
+            found: elements.length,
+            elements: Array.from(elements).map((el) => ({
+              href: el.href,
+              text: el.textContent?.trim(),
+            })),
+          });
+
+          // Try clicking the first one
+          try {
+            elements[0].click();
+            return {
+              success: true,
+              strategy: "href_pattern",
+              selector,
+              clickedElement: {
+                href: elements[0].href,
+                text: elements[0].textContent?.trim(),
+              },
+            };
+          } catch (err) {
+            results.push({
+              strategy: "href_pattern",
+              selector,
+              error: "Click failed: " + err.message,
+            });
+          }
+        }
+      }
+
+      // Strategy 2: Look for text content in all links
+      const allLinks = document.querySelectorAll("a");
+      const textPatterns = [
+        /^my\s*list$/i,
+        /^mylist$/i,
+        /^saved$/i,
+        /^favorites$/i,
+        /^wishlist$/i,
+        /saved\s*vehicles/i,
+        /my\s*saved/i,
+      ];
+
+      for (const link of allLinks) {
+        const text = link.textContent?.trim() || "";
+        for (const pattern of textPatterns) {
+          if (pattern.test(text)) {
+            results.push({
+              strategy: "text_pattern",
+              pattern: pattern.toString(),
+              found: text,
+              href: link.href,
+            });
+
+            try {
+              link.click();
+              return {
+                success: true,
+                strategy: "text_pattern",
+                pattern: pattern.toString(),
+                clickedElement: {
+                  href: link.href,
+                  text: text,
+                },
+              };
+            } catch (err) {
+              results.push({
+                strategy: "text_pattern",
+                error: "Click failed: " + err.message,
+              });
+            }
+          }
+        }
+      }
+
+      // Strategy 3: Look in navigation containers
+      const navContainers = document.querySelectorAll(
+        [
+          ".sub-header-container-lZOAt",
+          ".MuiContainer-root",
+          "nav",
+          '[class*="nav"]',
+          '[class*="header"]',
+          '[class*="menu"]',
+          '[role="navigation"]',
+        ].join(", ")
+      );
+
+      for (const container of navContainers) {
+        const containerLinks = container.querySelectorAll("a");
+        for (const link of containerLinks) {
+          const text = link.textContent?.trim().toLowerCase() || "";
+          if (
+            text.includes("my list") ||
+            text.includes("mylist") ||
+            text.includes("saved")
+          ) {
+            results.push({
+              strategy: "nav_container",
+              container:
+                typeof container.className === "string"
+                  ? container.className
+                  : container.className?.toString() || "",
+              found: text,
+              href: link.href,
+            });
+
+            try {
+              link.click();
+              return {
+                success: true,
+                strategy: "nav_container",
+                clickedElement: {
+                  href: link.href,
+                  text: text,
+                },
+              };
+            } catch (err) {
+              results.push({
+                strategy: "nav_container",
+                error: "Click failed: " + err.message,
+              });
+            }
+          }
+        }
+      }
+
+      return {
+        success: false,
+        attempts: results,
+      };
+    });
+
+    console.log("🎯 Navigation attempt result:", navigationResult);
+
+    if (navigationResult.success) {
+      console.log(
+        `✅ Successfully clicked My List using ${navigationResult.strategy}`
+      );
+      console.log(
+        `   Clicked element: "${navigationResult.clickedElement.text}" -> ${navigationResult.clickedElement.href}`
+      );
+
+      // Wait for navigation to complete
+      try {
+        await page.waitForNavigation({
+          waitUntil: "networkidle2",
+          timeout: 15000,
+        });
+        console.log("🔄 Navigation to My List completed");
+      } catch (navError) {
+        console.log(
+          "⚠️ Navigation wait failed, but click may have worked. Continuing..."
+        );
+      }
+    } else {
+      console.log(
+        '❌ "My List" link not found in any strategy, trying direct URLs...'
+      );
+      console.log("🔍 Attempted strategies:", navigationResult.attempts);
+
+      // Get current URL for proper navigation
+      const currentUrl = page.url();
+      const baseUrl = new URL(currentUrl).origin;
+
+      // Try multiple possible My List URLs
+      const possibleUrls = [
+        `${baseUrl}/mylist`,
+        `${baseUrl}/my-list`,
+        `${baseUrl}/saved`,
+        `${baseUrl}/favorites`,
+        `${baseUrl}/saved-vehicles`,
+        `${baseUrl}/wishlist`,
+        `${baseUrl}/mylist.html`,
+        `${baseUrl}/user/mylist`,
+        `${baseUrl}/account/mylist`,
+        `${baseUrl}/dashboard/mylist`,
+      ];
+
+      let directNavSuccess = false;
+
+      for (const testUrl of possibleUrls) {
+        try {
+          console.log(`🔗 Trying direct navigation to: ${testUrl}`);
+          await page.goto(testUrl, {
+            waitUntil: "networkidle2",
+            timeout: 15000,
+          });
+
+          // Check if we successfully loaded a My List page
+          const isMyListPage = await page.evaluate(() => {
+            const pageText = document.body.textContent.toLowerCase();
+            const url = window.location.href.toLowerCase();
+            const title = document.title.toLowerCase();
+
+            return (
+              url.includes("/mylist") ||
+              url.includes("/my-list") ||
+              url.includes("/saved") ||
+              url.includes("/favorites") ||
+              pageText.includes("my list") ||
+              pageText.includes("saved vehicles") ||
+              pageText.includes("favorites") ||
+              pageText.includes("wishlist") ||
+              title.includes("my list") ||
+              title.includes("saved") ||
+              title.includes("favorites")
+            );
+          });
+
+          if (isMyListPage) {
+            console.log(`✅ Successfully navigated to My List: ${testUrl}`);
+            directNavSuccess = true;
+            break;
+          } else {
+            console.log(
+              `❌ ${testUrl} did not load a My List page, trying next URL...`
+            );
+          }
+        } catch (error) {
+          console.log(`❌ Failed to navigate to ${testUrl}: ${error.message}`);
+        }
+      }
+
+      if (!directNavSuccess) {
+        // Final fallback: try to find any page that might contain saved vehicles
+        console.log(
+          "🔍 Final attempt: looking for any saved vehicles functionality..."
+        );
+
+        const finalAttempt = await page.evaluate(() => {
+          // Look for any element that might trigger My List functionality
+          const clickableElements = document.querySelectorAll(
+            [
+              "button",
+              '[role="button"]',
+              ".btn",
+              '[class*="btn"]',
+              "[onclick]",
+              '[class*="clickable"]',
+            ].join(", ")
+          );
+
+          for (const element of clickableElements) {
+            const text = element.textContent?.trim().toLowerCase() || "";
+            const className = (
+              typeof element.className === "string"
+                ? element.className
+                : element.className?.toString() || ""
+            ).toLowerCase();
+            const onClick = element.onclick?.toString().toLowerCase() || "";
+
+            if (
+              text.includes("my list") ||
+              text.includes("saved") ||
+              text.includes("favorites") ||
+              className.includes("mylist") ||
+              className.includes("saved") ||
+              onClick.includes("mylist") ||
+              onClick.includes("saved")
+            ) {
+              try {
+                element.click();
+                return {
+                  success: true,
+                  element: {
+                    text: text,
+                    className: className,
+                    tagName: element.tagName,
+                  },
+                };
+              } catch (err) {
+                return {
+                  success: false,
+                  error: err.message,
+                  element: {
+                    text: text,
+                    className: className,
+                    tagName: element.tagName,
+                  },
+                };
+              }
+            }
+          }
+
+          return {
+            success: false,
+            message: "No clickable My List elements found",
+          };
+        });
+
+        if (finalAttempt.success) {
+          console.log(
+            "✅ Final attempt successful - clicked element:",
+            finalAttempt.element
+          );
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        } else {
+          console.log("❌ Final attempt failed:", finalAttempt);
+          throw new Error(
+            "Could not navigate to My List using any method. " +
+              "Please ensure you have vehicles saved in your list and that the My List feature is accessible. " +
+              "The page may have changed its structure or the My List feature may not be available for your account."
+          );
+        }
+      }
+    }
+  } catch (error) {
+    console.log("⚠️ Error in navigateToMyList:", error.message);
+    throw new Error(
+      "Could not navigate to My List. Please ensure you have vehicles saved in your list and that the My List feature is accessible. " +
+        "Error details: " +
+        error.message
+    );
+  }
+
+  // Wait for page to fully load
+  console.log("⏳ Waiting for My List page to fully load...");
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  // Final verification that we're on a My List page
+  const finalVerification = await page.evaluate(() => {
+    const url = window.location.href.toLowerCase();
+    const title = document.title.toLowerCase();
+    const bodyText = document.body.textContent.toLowerCase();
+
+    return {
+      url,
+      title,
+      isMyListPage:
+        url.includes("mylist") ||
+        url.includes("saved") ||
+        url.includes("favorites") ||
+        title.includes("my list") ||
+        title.includes("saved") ||
+        bodyText.includes("my list") ||
+        bodyText.includes("saved vehicles"),
+      hasVehicleElements:
+        document.querySelectorAll(
+          [
+            ".vehicle-Tixca",
+            ".vehicle-list-item",
+            ".saved-vehicle-item",
+            '[class*="vehicle"]',
+          ].join(", ")
+        ).length > 0,
+    };
+  });
+
+  console.log("🔍 Final verification:", finalVerification);
+
+  if (!finalVerification.isMyListPage) {
+    console.log("⚠️ Warning: May not be on My List page, but continuing...");
+  }
+}
+
+// Helper function to capture debug information when navigation fails
+async function captureDebugInfo(page, context = "unknown") {
+  try {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const screenshotPath = `./debug_screenshot_${context}_${timestamp}.png`;
+
+    // Capture screenshot
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: true,
+    });
+
+    console.log(`📸 Debug screenshot saved: ${screenshotPath}`);
+
+    // Capture page HTML for analysis
+    const htmlContent = await page.content();
+    const htmlPath = `./debug_html_${context}_${timestamp}.html`;
+
+    require("fs").writeFileSync(htmlPath, htmlContent);
+    console.log(`📄 Page HTML saved: ${htmlPath}`);
+
+    return {
+      screenshot: screenshotPath,
+      html: htmlPath,
+    };
+  } catch (error) {
+    console.log(`⚠️ Failed to capture debug info: ${error.message}`);
+    return null;
+  }
+}
+
+// Function to scrape vehicles from My List
+async function scrapeMyList(jobId = null) {
+  const browser = await puppeteer.launch(config.getPuppeteerOptions());
+  const page = await browser.newPage();
+
+  // Set longer timeouts for page operations
+  page.setDefaultTimeout(60000); // 60 seconds default timeout
+  page.setDefaultNavigationTimeout(60000); // 60 seconds navigation timeout
+
+  // Utility function to check for cancellation
+  const checkCancellation = () => {
+    if (jobId && global.jobCancellation && global.jobCancellation[jobId]) {
+      throw new Error("Job was cancelled by user request");
+    }
+  };
+
+  let vehicles = [];
+
+  try {
+    checkCancellation(); // Check before starting
+
+    await login(page);
+    console.log("✅ Login completed");
+
+    checkCancellation(); // Check after login
+
+    await navigateToMyList(page);
+    console.log("✅ Navigated to My List");
+
+    checkCancellation(); // Check after navigation
+
+    // Wait for My List content to load
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // Check if My List is empty
+    const isEmpty = await page.evaluate(() => {
+      const pageText = document.body.textContent.toLowerCase();
+      return (
+        pageText.includes("no vehicles") ||
+        pageText.includes("empty list") ||
+        pageText.includes("no saved vehicles") ||
+        pageText.includes("your list is empty")
+      );
+    });
+
+    if (isEmpty) {
+      console.log("📭 My List is empty - no vehicles to scrape");
+      return {
+        vehicles: [],
+        filename: null,
+        summary: {
+          total: 0,
+          successful: 0,
+          failed: 0,
+        },
+      };
+    }
+
+    // Load all vehicles in My List (similar to auction loading)
+    console.log("🔄 Loading all vehicles from My List...");
+    await loadAllVehicles(page);
+
+    // Extract vehicle data from My List
+    console.log("🔍 Extracting vehicle data from My List...");
+    const vehicleData = await extractMyListVehicleData(page, 1000); // No limit for My List
+
+    vehicles.push(...vehicleData);
+    console.log(`✅ Extracted ${vehicleData.length} vehicles from My List`);
+
+    if (vehicles.length > 0) {
+      const filename = generateDateFilename("mylist_vehicles");
+      saveJSON(filename, vehicles);
+      console.log(`📁 My List data saved to: ${filename}`);
+
+      // Call vAuto annotator to enrich the data
+      console.log("🔄 Starting vAuto annotation for My List vehicles...");
+      try {
+        const annotatedResult = await annotateVehiclesWithVAuto(
+          filename,
+          jobId
+        );
+
+        if (annotatedResult && annotatedResult.filename) {
+          console.log(
+            `✅ vAuto annotation completed. Updated original file: ${annotatedResult.filename}`
+          );
+
+          return {
+            vehicles: annotatedResult.vehicles, // Use the enriched vehicles
+            filename: annotatedResult.filename, // This is the same as the original filename
+            summary: {
+              total: vehicles.length,
+              successful: vehicles.length,
+              failed: 0,
+              annotated: annotatedResult.summary.successful || 0,
+              annotationFailed: annotatedResult.summary.failed || 0,
+            },
+          };
+        } else {
+          console.log("⚠️ vAuto annotation failed or returned no data");
+          return {
+            vehicles,
+            filename,
+            summary: {
+              total: vehicles.length,
+              successful: vehicles.length,
+              failed: 0,
+              annotated: 0,
+            },
+          };
+        }
+      } catch (annotationError) {
+        console.log(`❌ vAuto annotation failed: ${annotationError.message}`);
+        // Return the original data even if annotation fails
+        return {
+          vehicles,
+          filename,
+          annotationError: annotationError.message,
+          summary: {
+            total: vehicles.length,
+            successful: vehicles.length,
+            failed: 0,
+            annotated: 0,
+            annotationFailed: vehicles.length,
+          },
+        };
+      }
+    } else {
+      console.log("⚠️ No valid vehicles found in My List");
+      return {
+        vehicles: [],
+        filename: null,
+        summary: {
+          total: 0,
+          successful: 0,
+          failed: 0,
+          annotated: 0,
+        },
+      };
+    }
+  } catch (error) {
+    // Check if this was a cancellation
+    if (error.message && error.message.includes("cancelled")) {
+      console.log("🛑 My List scraping was cancelled");
+
+      // Save whatever we got so far if we have any vehicles
+      if (vehicles && vehicles.length > 0) {
+        const filename = generateDateFilename("mylist_vehicles_cancelled");
+        saveJSON(filename, vehicles);
+        console.log(
+          `💾 Partial My List data saved to: ${filename} (${vehicles.length} vehicles)`
+        );
+
+        return {
+          vehicles,
+          filename,
+          cancelled: true,
+          summary: {
+            total: vehicles.length,
+            successful: vehicles.length,
+            failed: 0,
+            annotated: 0,
+          },
+        };
+      } else {
+        console.log(
+          "🛑 No vehicles were scraped from My List before cancellation"
+        );
+        return {
+          vehicles: [],
+          filename: null,
+          cancelled: true,
+          summary: {
+            total: 0,
+            successful: 0,
+            failed: 0,
+            annotated: 0,
+          },
+        };
+      }
+    }
+
+    // If it's a My List navigation error, capture debug information
+    if (error.message && error.message.includes("navigate to My List")) {
+      console.log(
+        "📸 Capturing debug information for My List navigation failure..."
+      );
+      try {
+        await captureDebugInfo(page, "mylist_navigation_failed");
+      } catch (debugError) {
+        console.log(`⚠️ Could not capture debug info: ${debugError.message}`);
+      }
+    }
+
+    console.error("❌ Error in scrapeMyList:", error.message);
+    throw error;
+  } finally {
+    await browser.close();
+  }
+}
+
 async function scrapeAuctions(jobId = null) {
   const browser = await puppeteer.launch(config.getPuppeteerOptions());
   const page = await browser.newPage();
@@ -597,6 +1530,8 @@ async function scrapeAuctions(jobId = null) {
       throw new Error("Job was cancelled by user request");
     }
   };
+
+  let vehicles = [];
 
   try {
     checkCancellation(); // Check before starting
@@ -641,11 +1576,19 @@ async function scrapeAuctions(jobId = null) {
     const vehicles = [];
     const maxAuctionsToProcess = Math.min(auctionCards.length, 10); // Process max 10 auctions to avoid long runtime
 
+    // Progress tracking variables
+    let totalVehiclesExpected = 0;
+    let totalVehiclesProcessed = 0;
+    const startTime = Date.now();
+
     for (let i = 0; i < maxAuctionsToProcess; i++) {
       checkCancellation(); // Check before processing each auction
 
+      const remainingAuctions = maxAuctionsToProcess - i - 1;
       console.log(
-        `🔍 Processing auction ${i + 1} of ${maxAuctionsToProcess} (out of ${
+        `🔍 Processing auction ${
+          i + 1
+        } of ${maxAuctionsToProcess} (${remainingAuctions} remaining) (out of ${
           auctionCards.length
         } total)`
       );
@@ -682,6 +1625,26 @@ async function scrapeAuctions(jobId = null) {
               i
             );
             vehicles.push(...vinBatch);
+
+            // Update progress tracking
+            totalVehiclesProcessed += vinBatch.length;
+
+            // Calculate ETA
+            const elapsedTime = Date.now() - startTime;
+            const avgTimePerAuction = elapsedTime / (i + 1);
+            const remainingAuctions = maxAuctionsToProcess - (i + 1);
+            const estimatedTimeRemaining = Math.round(
+              (avgTimePerAuction * remainingAuctions) / 1000 / 60
+            ); // in minutes
+
+            const etaText = i > 0 ? ` - ETA: ${estimatedTimeRemaining}min` : "";
+
+            console.log(
+              `📊 Progress Update: Processed ${totalVehiclesProcessed} vehicles so far from ${
+                i + 1
+              }/${maxAuctionsToProcess} auctions${etaText}`
+            );
+
             auctionProcessed = true;
             break;
           } else {
@@ -774,18 +1737,38 @@ async function scrapeAuctions(jobId = null) {
     // Check if this was a cancellation
     if (error.message && error.message.includes("cancelled")) {
       console.log("🛑 CarMax scraping was cancelled");
-      const filename = generateDateFilename("vehicles_cancelled");
-      saveJSON(filename, vehicles); // Save whatever we got so far
-      return {
-        vehicles,
-        filename,
-        cancelled: true,
-        summary: {
-          total: vehicles.length,
-          successful: vehicles.length,
-          failed: 0,
-        },
-      };
+
+      // Save whatever we got so far if we have any vehicles
+      if (vehicles && vehicles.length > 0) {
+        const filename = generateDateFilename("vehicles_cancelled");
+        saveJSON(filename, vehicles);
+        console.log(
+          `💾 Partial data saved to: ${filename} (${vehicles.length} vehicles)`
+        );
+
+        return {
+          vehicles,
+          filename,
+          cancelled: true,
+          summary: {
+            total: vehicles.length,
+            successful: vehicles.length,
+            failed: 0,
+          },
+        };
+      } else {
+        console.log("🛑 No vehicles were scraped before cancellation");
+        return {
+          vehicles: [],
+          filename: null,
+          cancelled: true,
+          summary: {
+            total: 0,
+            successful: 0,
+            failed: 0,
+          },
+        };
+      }
     }
 
     console.error("❌ Error in scrapeAuctions:", error.message);
@@ -795,4 +1778,7 @@ async function scrapeAuctions(jobId = null) {
   }
 }
 
-module.exports = scrapeAuctions;
+module.exports = {
+  scrapeAuctions,
+  scrapeMyList,
+};

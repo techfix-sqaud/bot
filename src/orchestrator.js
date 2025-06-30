@@ -1,5 +1,5 @@
-const scrapeAuctions = require("./carmaxScraper");
-const annotateUser = require("./vautoAnnotator");
+const { scrapeAuctions, scrapeMyList } = require("./carmaxScraper");
+const { annotateUser, annotateVehiclesWithVAuto } = require("./vautoAnnotator");
 const { exportData, getMostRecentFile } = require("./utils");
 
 /**
@@ -42,21 +42,33 @@ class VehicleDataOrchestrator {
     const {
       user,
       skipScraping = false,
+      scrapingMode = "auctions", // "auctions" or "mylist"
       exportFormat = this.defaultExportFormat,
       exportFilename = null,
+      jobId = null,
     } = options;
 
     console.log("🚀 Starting complete vehicle data workflow...");
     console.log(`📊 Export format: ${exportFormat.toUpperCase()}`);
+    console.log(
+      `🎯 Scraping mode: ${
+        scrapingMode === "mylist" ? "My List" : "All Auctions"
+      }`
+    );
 
     let vehicleFile = null;
     let scrapingResults = null;
 
     try {
-      // Step 1: Scrape CarMax auctions (unless skipped)
+      // Step 1: Scrape CarMax data (unless skipped)
       if (!skipScraping) {
-        console.log("\n📡 STEP 1: Scraping CarMax auctions...");
-        scrapingResults = await scrapeAuctions();
+        if (scrapingMode === "mylist") {
+          console.log("\n📡 STEP 1: Scraping CarMax My List...");
+          scrapingResults = await scrapeMyList(jobId);
+        } else {
+          console.log("\n📡 STEP 1: Scraping CarMax auctions...");
+          scrapingResults = await scrapeAuctions(jobId);
+        }
         vehicleFile = scrapingResults.filename;
         console.log(
           `✅ Scraping completed. Found ${scrapingResults.vehicles.length} vehicles`
@@ -79,6 +91,7 @@ class VehicleDataOrchestrator {
           inputFile: vehicleFile,
           exportFormat,
           exportFilename,
+          jobId,
         });
 
         console.log("✅ Complete workflow finished successfully!");
@@ -153,6 +166,7 @@ class VehicleDataOrchestrator {
       inputFile = null,
       exportFormat = this.defaultExportFormat,
       exportFilename = null,
+      jobId = null,
     } = options;
 
     console.log("🔍 Running vAuto annotation only...");
@@ -161,6 +175,7 @@ class VehicleDataOrchestrator {
       inputFile,
       exportFormat,
       exportFilename,
+      jobId,
     });
 
     console.log("✅ Annotation completed!");
@@ -244,7 +259,6 @@ class VehicleDataOrchestrator {
   async runCarmaxOnly(jobId = null) {
     console.log("🚗 Running CarMax scraping only...");
 
-    const scrapeAuctions = require("./carmaxScraper");
     const results = await scrapeAuctions(jobId);
 
     console.log(
@@ -300,7 +314,6 @@ class VehicleDataOrchestrator {
       vins: vins,
     };
 
-    const annotateUser = require("./vautoAnnotator");
     const results = await annotateUser(user, {
       inputFile: latestFile,
       exportFormat: "json",
@@ -309,6 +322,33 @@ class VehicleDataOrchestrator {
 
     console.log("✅ vAuto annotation completed!");
     return results;
+  }
+
+  /**
+   * Run only CarMax My List scraping
+   * @param {string} jobId - Optional job ID for cancellation support
+   */
+  async runMyListOnly(jobId = null) {
+    console.log("🚀 Starting CarMax My List scraping...");
+
+    try {
+      checkCancellation(jobId, "My List scraping initialization");
+
+      const results = await scrapeMyList(jobId);
+
+      if (results.cancelled) {
+        console.log("🛑 My List scraping was cancelled");
+        return results;
+      }
+
+      console.log("✅ My List scraping completed successfully!");
+      console.log(`📈 Vehicles found: ${results.summary.total}`);
+
+      return results;
+    } catch (error) {
+      console.error("❌ My List scraping failed:", error.message);
+      throw error;
+    }
   }
 }
 

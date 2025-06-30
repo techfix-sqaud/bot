@@ -23,7 +23,7 @@ if (mode === "web") {
   (async () => {
     console.log("🚀 Starting vAuto enrichment for existing vehicles...");
     try {
-      await enrichVehiclesWithVAuto();
+      await enrichVehiclesWithVAuto(Date.now().toString());
       console.log("✅ Job completed successfully!");
     } catch (error) {
       console.error("❌ Job failed:", error.message);
