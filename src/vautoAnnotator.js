@@ -1,6 +1,14 @@
 const puppeteer = require("puppeteer");
 const { vautoUrl, headless } = require("./config");
-const { loadJSON, summarizeVehicle, fuzzyMatchVIN } = require("./utils");
+const {
+  loadJSON,
+  summarizeVehicle,
+  fuzzyMatchVIN,
+  getMostRecentFile,
+  saveJSON,
+  generateDateFilename,
+  exportData,
+} = require("./utils");
 require("dotenv").config();
 
 /**
@@ -45,7 +53,7 @@ async function loginToVAuto(page) {
     await page.type("#password", vautoPassword, { delay: 100 });
 
     // Wait for network to settle before clicking
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Click final sign in button
     await page.click("#signIn");
@@ -98,7 +106,7 @@ async function getVehicleEvaluation(page, vin, mileage) {
     await page.click("#btnEvaluate");
 
     // Wait for evaluation to complete
-    await new Promise(resolve => setTimeout(resolve, 20000));
+    await new Promise((resolve) => setTimeout(resolve, 20000));
 
     // Wait for AutoCheck frame to load
     const frame = await page.waitForFunction(
@@ -254,8 +262,15 @@ function formatEvaluationNote(evaluationData) {
 /**
  * Main function to annotate vehicles with vAuto data
  * @param {Object} user - User object containing VINs to process
+ * @param {Object} options - Options for processing and export
  */
-async function annotateUser(user) {
+async function annotateUser(user, options = {}) {
+  const {
+    inputFile = null,
+    exportFormat = "xlsx",
+    exportFilename = null,
+  } = options;
+
   console.log(`🚀 Starting vAuto annotation for user: ${user.email}`);
 
   const browser = await puppeteer.launch({
@@ -274,13 +289,31 @@ async function annotateUser(user) {
   const page = await browser.newPage();
 
   try {
-    // Load vehicle data
-    const vehicles = loadJSON("./data/vehicles.json");
+    // Load vehicle data - use specified file or find the most recent one
+    let dataFile = inputFile;
+    if (!dataFile) {
+      dataFile = getMostRecentFile("vehicles");
+      if (!dataFile) {
+        // Fallback to default location
+        dataFile = "./data/vehicles.json";
+      }
+    }
+
+    console.log(`📂 Loading vehicle data from: ${dataFile}`);
+    const vehicles = loadJSON(dataFile);
+
+    if (!vehicles || vehicles.length === 0) {
+      console.log("⚠️ No vehicle data found in the file");
+      return;
+    }
+
     const candidates = vehicles.filter(
       (v) => user.vins.includes(v.vin) || fuzzyMatchVIN(v.vin, user.vins)
     );
 
-    console.log(`📋 Found ${candidates.length} vehicles to process`);
+    console.log(
+      `📋 Found ${candidates.length} vehicles to process from ${vehicles.length} total vehicles`
+    );
 
     if (candidates.length === 0) {
       console.log("⚠️ No matching vehicles found");
@@ -304,31 +337,39 @@ async function annotateUser(user) {
         );
         const formattedNote = formatEvaluationNote(evaluationData);
 
-        results.push({
-          vin: vehicle.vin,
-          title: vehicle.title,
-          evaluationData,
-          note: formattedNote,
-          success: !!evaluationData,
-        });
+        // Merge vAuto data with original vehicle data
+        const enrichedVehicle = {
+          ...vehicle,
+          vautoEvaluation: evaluationData,
+          vautoNote: formattedNote,
+          evaluationSuccess: !!evaluationData,
+          processedAt: new Date().toISOString(),
+        };
+
+        results.push(enrichedVehicle);
 
         console.log(`✅ Generated note for ${vehicle.vin}:\n${formattedNote}`);
 
         // Wait between requests to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       } catch (error) {
         console.error(`❌ Failed to process ${vehicle.vin}:`, error.message);
-        results.push({
-          vin: vehicle.vin,
-          title: vehicle.title,
-          success: false,
-          error: error.message,
-        });
+
+        const failedVehicle = {
+          ...vehicle,
+          vautoEvaluation: null,
+          vautoNote: "❌ Evaluation failed",
+          evaluationSuccess: false,
+          evaluationError: error.message,
+          processedAt: new Date().toISOString(),
+        };
+
+        results.push(failedVehicle);
       }
     }
 
     // Summary
-    const successful = results.filter((r) => r.success).length;
+    const successful = results.filter((r) => r.evaluationSuccess).length;
     console.log(`\n📊 Annotation Summary:`);
     console.log(
       `✅ Successfully processed: ${successful}/${candidates.length} vehicles`
@@ -339,7 +380,62 @@ async function annotateUser(user) {
       } vehicles`
     );
 
-    return results;
+    // Save annotated data
+    const annotatedFilename = generateDateFilename("vehicles_annotated");
+    saveJSON(annotatedFilename, results);
+    console.log(`💾 Annotated data saved to: ${annotatedFilename}`);
+
+    // Export in requested format
+    if (exportFormat && exportFormat !== "json") {
+      try {
+        const exportFilePath =
+          exportFilename ||
+          generateDateFilename("vehicles_annotated", exportFormat);
+
+        const exportedFile = exportData(
+          results,
+          "vehicles_annotated",
+          exportFormat
+        );
+        console.log(
+          `📊 Data exported to ${exportFormat.toUpperCase()}: ${exportedFile}`
+        );
+
+        return {
+          results,
+          jsonFile: annotatedFilename,
+          exportFile: exportedFile,
+          summary: {
+            total: candidates.length,
+            successful,
+            failed: candidates.length - successful,
+          },
+        };
+      } catch (exportError) {
+        console.error(`❌ Export failed: ${exportError.message}`);
+        // Still return results even if export fails
+        return {
+          results,
+          jsonFile: annotatedFilename,
+          exportError: exportError.message,
+          summary: {
+            total: candidates.length,
+            successful,
+            failed: candidates.length - successful,
+          },
+        };
+      }
+    }
+
+    return {
+      results,
+      jsonFile: annotatedFilename,
+      summary: {
+        total: candidates.length,
+        successful,
+        failed: candidates.length - successful,
+      },
+    };
   } catch (error) {
     console.error("❌ Fatal error during annotation:", error.message);
     throw error;

@@ -1,0 +1,40 @@
+name: Deploy to Coolify
+
+on:
+  push:
+    branches: [ DEV, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests (if any)
+      run: npm test --if-present
+
+    - name: Trigger Coolify Deployment
+      uses: fjogeleit/http-request-action@v1
+      with:
+        url: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+        method: 'POST'
+        customHeaders: '{"Content-Type": "application/json"}'
+        data: '{"ref": "${{ github.ref }}", "repository": "${{ github.repository }}"}'
+      if: env.COOLIFY_WEBHOOK_URL != ''
+
+    - name: Deployment Success
+      run: |
+        echo "✅ Deployment triggered successfully!"
+        echo "🔗 Check your Coolify dashboard for deployment status"
