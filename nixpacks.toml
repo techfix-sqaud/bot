@@ -20,5 +20,4 @@ dependsOn = ["install"]
 cmds = ["echo 'Build complete'"]
 
 [variables]
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
-PUPPETEER_EXECUTABLE_PATH = "/nix/store/*-chromium-*/bin/chromium"
+PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
