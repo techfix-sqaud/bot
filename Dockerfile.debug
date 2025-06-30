@@ -38,8 +38,9 @@ COPY . .
 # Create volume mount point for persistent data
 VOLUME ["/usr/src/app/data"]
 
-# Set Puppeteer to use installed Chromium
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+# Set environment for debugging
+ENV NODE_ENV=development \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 
 # Expose port (for potential future web interface)
 EXPOSE 3000

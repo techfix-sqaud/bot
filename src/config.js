@@ -49,7 +49,7 @@ function findChromiumExecutable() {
     ];
     whichCommands = ["chrome", "google-chrome", "chromium"];
   } else {
-    // Linux and other Unix-like systems
+    // Linux and other Unix-like systems (including Docker/Alpine)
     commonPaths = [
       "/usr/bin/google-chrome",
       "/usr/bin/google-chrome-stable",
@@ -64,10 +64,10 @@ function findChromiumExecutable() {
       "/usr/bin/google-chrome-beta",
     ];
     whichCommands = [
-      "google-chrome",
-      "google-chrome-stable",
       "chromium",
       "chromium-browser",
+      "google-chrome",
+      "google-chrome-stable",
       "chrome",
     ];
   }
