@@ -234,19 +234,45 @@ module.exports = {
     const executablePath = findChromiumExecutable();
     const options = {
       headless: process.env.NODE_ENV === "production" ? "new" : false,
-      args:
-        process.env.NODE_ENV === "production"
-          ? [
-              "--no-sandbox",
-              "--disable-setuid-sandbox",
-              "--disable-dev-shm-usage",
-              "--disable-accelerated-2d-canvas",
-              "--no-first-run",
-              "--no-zygote",
-              "--single-process",
-              "--disable-gpu",
-            ]
-          : [],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--disable-web-security",
+        "--disable-features=VizDisplayCompositor",
+        "--no-first-run",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--disable-field-trial-config",
+        "--disable-ipc-flooding-protection",
+        // Fix for missing X server/display issues
+        "--virtual-time-budget=60000",
+        "--disable-extensions",
+        "--disable-plugins",
+        "--disable-sync",
+        "--disable-translate",
+        "--disable-default-apps",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-client-side-phishing-detection",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-domain-reliability",
+        "--disable-features=AudioServiceOutOfProcess",
+        // Additional flags for containerized environments
+        "--no-zygote",
+        "--single-process",
+        "--disable-accelerated-2d-canvas",
+        "--disable-software-rasterizer",
+        "--enable-unsafe-swiftshader",
+        // Force headless mode in all environments to avoid X server issues
+        ...(process.env.NODE_ENV === "production" || !process.env.DISPLAY
+          ? ["--headless=new"]
+          : []),
+      ],
       protocolTimeout: 120000, // 2 minutes protocol timeout
     };
 
@@ -278,18 +304,39 @@ module.exports = {
         "--disable-field-trial-config",
         "--disable-ipc-flooding-protection",
         "--enable-unsafe-swiftshader",
-        ...(process.env.NODE_ENV === "production"
-          ? [
-              "--disable-accelerated-2d-canvas",
-              "--no-first-run",
-              "--no-zygote",
-              "--single-process",
-              "--disable-extensions",
-            ]
+        "--no-first-run",
+        "--disable-extensions",
+        "--disable-plugins",
+        "--disable-sync",
+        "--disable-translate",
+        "--disable-default-apps",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-client-side-phishing-detection",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-domain-reliability",
+        "--disable-features=AudioServiceOutOfProcess",
+        // Force headless and additional containerized environment flags
+        "--no-zygote",
+        "--single-process",
+        "--disable-accelerated-2d-canvas",
+        // Force headless mode when no display is available
+        ...(process.env.NODE_ENV === "production" || !process.env.DISPLAY
+          ? ["--headless=new"]
           : []),
       ],
       ...overrides,
     };
+
+    // Force headless if no display is available regardless of NODE_ENV
+    if (!process.env.DISPLAY && baseOptions.headless === false) {
+      console.log(
+        "⚠️  No DISPLAY environment variable found, forcing headless mode"
+      );
+      baseOptions.headless = "new";
+    }
 
     // Only set executablePath if we found a valid one
     if (executablePath) {

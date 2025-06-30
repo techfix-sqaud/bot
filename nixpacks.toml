@@ -2,13 +2,13 @@
 cmd = "npm ci"
 
 [start]
-cmd = "npm start"
+cmd = "./start-nixpacks.sh"
 
 [env]
 NODE_ENV = "production"
 
 [phases.setup]
-nixpkgs = ["nodejs_20", "chromium"]
+nixpkgs = ["nodejs_20", "chromium", "xvfb-run"]
 aptPkgs = [
   "ca-certificates", 
   "fonts-liberation", 
@@ -29,7 +29,9 @@ aptPkgs = [
   "libxfixes3",
   "libxi6",
   "libxrandr2",
-  "libxrender1"
+  "libxrender1",
+  "xvfb",
+  "dbus"
 ]
 
 [phases.install]
@@ -49,3 +51,6 @@ cmds = [
 [variables]
 NODE_ENV = "production"
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+PUPPETEER_EXECUTABLE_PATH = "chromium"
+DISPLAY = ":99"
+CHROME_BIN = "chromium"
