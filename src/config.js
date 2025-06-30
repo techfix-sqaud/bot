@@ -1,3 +1,95 @@
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+
+// Function to find Chromium executable in various environments
+function findChromiumExecutable() {
+  // In production, prefer environment variable or simple paths
+  if (process.env.NODE_ENV === "production") {
+    const prodPaths = [
+      "/usr/bin/chromium",
+      "/usr/bin/chromium-browser",
+      "/usr/bin/google-chrome",
+    ];
+
+    for (const browserPath of prodPaths) {
+      try {
+        if (fs.existsSync(browserPath)) {
+          return browserPath;
+        }
+      } catch (error) {
+        // Continue to next path
+      }
+    }
+
+    // Try to use 'which' command safely
+    try {
+      const chromiumPath = execSync("which chromium", {
+        encoding: "utf8",
+        timeout: 5000,
+      }).trim();
+      if (chromiumPath) {
+        return chromiumPath;
+      }
+    } catch (error) {
+      // Ignore error in production
+    }
+
+    return undefined; // Let Puppeteer use bundled Chromium
+  }
+
+  // Development environment - more extensive search
+  const commonPaths = [
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome",
+    "/opt/google/chrome/chrome",
+    // macOS paths
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  ];
+
+  // Check common paths first
+  for (const browserPath of commonPaths) {
+    try {
+      if (fs.existsSync(browserPath)) {
+        return browserPath;
+      }
+    } catch (error) {
+      // Continue to next path
+    }
+  }
+
+  // Try to find chromium via which command
+  try {
+    const chromiumPath = execSync("which chromium", {
+      encoding: "utf8",
+      timeout: 5000,
+    }).trim();
+    if (chromiumPath && fs.existsSync(chromiumPath)) {
+      return chromiumPath;
+    }
+  } catch (error) {
+    // Ignore error, try next method
+  }
+
+  // Try to find chrome via which command
+  try {
+    const chromePath = execSync("which google-chrome", {
+      encoding: "utf8",
+      timeout: 5000,
+    }).trim();
+    if (chromePath && fs.existsSync(chromePath)) {
+      return chromePath;
+    }
+  } catch (error) {
+    // Ignore error, try next method
+  }
+
+  // If nothing found, return undefined to use Puppeteer's bundled Chromium
+  return undefined;
+}
+
 module.exports = {
   carmaxUrl: "https://www.carmaxauctions.com",
   vautoUrl: "https://www2.vauto.com/genius/platform/quickvin",
@@ -20,6 +112,7 @@ module.exports = {
             "--disable-gpu",
           ]
         : [],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH || findChromiumExecutable(),
   },
 };
