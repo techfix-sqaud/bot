@@ -41,10 +41,8 @@ RUN mkdir -p data user_data && \
     chown -R nodejs:nodejs /app
 
 # Set environment variables
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    NODE_ENV=production \
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    CHROME_BIN=/usr/bin/chromium-browser
+ENV NODE_ENV=production \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 
 USER nodejs
 

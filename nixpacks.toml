@@ -20,4 +20,5 @@ dependsOn = ["install"]
 cmds = ["echo 'Build complete'"]
 
 [variables]
-PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
+NODE_ENV = "production"
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
