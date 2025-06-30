@@ -6,21 +6,26 @@ cmd = "./start-nixpacks.sh"
 
 [env]
 NODE_ENV = "production"
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"  # Let Puppeteer use system Chromium
+DISPLAY = ":99"
 
 [phases.setup]
-nixpkgs = ["nodejs_20", "xvfb-run"]
+# Install Chromium + Node.js + Xvfb
+nixpkgs = ["nodejs_20", "xvfb-run", "chromium"]
+
+# Optional: Only needed if Coolify blends apt (some Coolify setups do)
 aptPkgs = [
-  "ca-certificates", 
-  "fonts-liberation", 
-  "libasound2", 
-  "libatk-bridge2.0-0", 
+  "ca-certificates",
+  "fonts-liberation",
+  "libasound2",
+  "libatk-bridge2.0-0",
   "libatk1.0-0",
-  "libdrm2", 
-  "libgtk-3-0", 
-  "libnspr4", 
-  "libnss3", 
-  "libxss1", 
-  "libxtst6", 
+  "libdrm2",
+  "libgtk-3-0",
+  "libnspr4",
+  "libnss3",
+  "libxss1",
+  "libxtst6",
   "xdg-utils",
   "libgbm1",
   "libxcomposite1",
@@ -36,16 +41,12 @@ aptPkgs = [
 
 [phases.install]
 dependsOn = ["setup"]
-cmds = ["npm ci"]
+cmds = [
+  "npm ci"
+]
 
 [phases.build]
 dependsOn = ["install"]
 cmds = [
-  "echo 'Build complete'",
-  "echo 'Puppeteer will download and manage Chromium automatically'"
+  "echo '✅ Build complete - Puppeteer will use system Chromium'"
 ]
-
-[variables]
-NODE_ENV = "production"
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
-DISPLAY = ":99"
