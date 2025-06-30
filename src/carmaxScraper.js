@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 const { carmaxUrl, headless } = require("./config");
-const { saveJSON } = require("./utils");
+const { saveJSON, generateDateFilename } = require("./utils");
 
 async function login(page) {
   await page.goto(carmaxUrl, { waitUntil: "networkidle2" });
@@ -184,11 +184,11 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
 
   try {
     console.log(`\n🔄 Starting auction ${index + 1}...`);
-    
+
     // Wait for auction cards and get them
     await page.waitForSelector(auctionsSelector, { timeout: 5000 });
     const auctionCards = await page.$$(auctionsSelector);
-    
+
     if (!auctionCards[index]) {
       console.log(`❌ Auction card ${index + 1} not found`);
       return vehicles;
@@ -208,7 +208,7 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
 
     // Wait for vehicles page to load
     console.log(`⏳ Waiting for vehicles page to load...`);
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     // Get total cars info
     const totalCarsInfo = await getTotalCarsInfo(page);
@@ -222,10 +222,17 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
 
     // Extract vehicle data (limit to 100 for testing)
     console.log(`🔍 Extracting vehicle data...`);
-    const vehicleData = await extractVehicleData(page, index, auctionInfo.location, 100);
-    
+    const vehicleData = await extractVehicleData(
+      page,
+      index,
+      auctionInfo.location,
+      100
+    );
+
     vehicles.push(...vehicleData);
-    console.log(`✅ Extracted ${vehicleData.length} vehicles from ${auctionInfo.location}`);
+    console.log(
+      `✅ Extracted ${vehicleData.length} vehicles from ${auctionInfo.location}`
+    );
 
     // Navigate back to auctions list
     const finalUrl = page.url();
@@ -233,7 +240,6 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
       console.log(`🔙 Navigating back to auctions list...`);
       await navigateBackToAuctions(page, auctionsSelector, currentUrl);
     }
-
   } catch (error) {
     console.log(`❌ Error in auction ${index + 1}: ${error.message}`);
   }
@@ -243,34 +249,45 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
 
 // Helper function to get auction info
 async function getAuctionInfo(page, auctionCard, index) {
-  return await page.evaluate((card, idx) => {
-    const locationElement = card.querySelector(".auction-location, .location, h3, h4, .title") ||
-      card.querySelector("[data-testid*='location'], [data-testid*='title']");
-    
-    return {
-      location: locationElement?.textContent?.trim() || `Auction ${idx + 1}`,
-      text: card.textContent?.substring(0, 100) || ""
-    };
-  }, auctionCard, index);
+  return await page.evaluate(
+    (card, idx) => {
+      const locationElement =
+        card.querySelector(".auction-location, .location, h3, h4, .title") ||
+        card.querySelector("[data-testid*='location'], [data-testid*='title']");
+
+      return {
+        location: locationElement?.textContent?.trim() || `Auction ${idx + 1}`,
+        text: card.textContent?.substring(0, 100) || "",
+      };
+    },
+    auctionCard,
+    index
+  );
 }
 
 // Helper function to click View Cars button
 async function clickViewCarsButton(page, auctionCard, auctionNum) {
   console.log(`🖱️ Looking for "View Cars" button...`);
-  
+
   const result = await page.evaluate((card) => {
     // Find any button with "View Cars" text
-    const buttons = card.querySelectorAll('hzn-button, button, a, [role="button"]');
-    
+    const buttons = card.querySelectorAll(
+      'hzn-button, button, a, [role="button"]'
+    );
+
     for (const btn of buttons) {
       const btnText = btn.textContent?.trim().toLowerCase();
       if (btnText.includes("view cars")) {
         // Check if disabled
-        if (btn.disabled || btn.getAttribute("disabled") !== null || 
-            btn.hasAttribute("disabled") || btn.getAttribute("aria-disabled") === "true") {
+        if (
+          btn.disabled ||
+          btn.getAttribute("disabled") !== null ||
+          btn.hasAttribute("disabled") ||
+          btn.getAttribute("aria-disabled") === "true"
+        ) {
           return "disabled";
         }
-        
+
         // Try to click
         try {
           // For hzn-button, try shadow DOM first
@@ -300,10 +317,12 @@ async function clickViewCarsButton(page, auctionCard, auctionNum) {
     console.log(`❌ "View Cars" button not found in auction ${auctionNum}`);
     return false;
   } else if (result === "clicked") {
-    console.log(`✅ Successfully clicked "View Cars" for auction ${auctionNum}`);
+    console.log(
+      `✅ Successfully clicked "View Cars" for auction ${auctionNum}`
+    );
     return true;
   }
-  
+
   return false;
 }
 
@@ -312,7 +331,9 @@ async function getTotalCarsInfo(page) {
   return await page.evaluate(() => {
     const pageText = document.body?.textContent || "";
     const match = pageText.match(/(\d+)\s*cars?\s*available/i);
-    return match ? { totalCars: parseInt(match[1]), displayText: match[0] } : null;
+    return match
+      ? { totalCars: parseInt(match[1]), displayText: match[0] }
+      : null;
   });
 }
 
@@ -320,9 +341,16 @@ async function getTotalCarsInfo(page) {
 async function loadAllVehicles(page) {
   await page.evaluate(async () => {
     const findScrollContainer = () => {
-      const selectors = [".vehicle-list-container", ".search-results", ".vehicles-container", 
-                        '[class*="scroll"]', '[role="main"]', "main", "body"];
-      
+      const selectors = [
+        ".vehicle-list-container",
+        ".search-results",
+        ".vehicles-container",
+        '[class*="scroll"]',
+        '[role="main"]',
+        "main",
+        "body",
+      ];
+
       for (const selector of selectors) {
         const element = document.querySelector(selector);
         if (element && element.scrollHeight > element.clientHeight) {
@@ -333,9 +361,17 @@ async function loadAllVehicles(page) {
     };
 
     const countVehicles = () => {
-      const selectors = [".vehicle-list-item", '[class*="vehicle-list"]', '[class*="vehicle-row"]', 
-                        "tbody tr", ".MuiTableBody-root tr", '[role="row"]'];
-      return Math.max(...selectors.map(sel => document.querySelectorAll(sel).length));
+      const selectors = [
+        ".vehicle-list-item",
+        '[class*="vehicle-list"]',
+        '[class*="vehicle-row"]',
+        "tbody tr",
+        ".MuiTableBody-root tr",
+        '[role="row"]',
+      ];
+      return Math.max(
+        ...selectors.map((sel) => document.querySelectorAll(sel).length)
+      );
     };
 
     const scrollContainer = findScrollContainer();
@@ -346,15 +382,22 @@ async function loadAllVehicles(page) {
 
     while (attempts < maxAttempts) {
       const initialCount = countVehicles();
-      
+
       // Try clicking "SEE MORE MATCHES" button first
-      const loadMoreBtn = Array.from(document.querySelectorAll("button"))
-        .find(btn => btn.textContent?.trim().toUpperCase().includes("SEE MORE"));
-      
-      if (loadMoreBtn && !loadMoreBtn.disabled && loadMoreBtn.style.display !== "none") {
-        console.log(`📋 Clicking "SEE MORE MATCHES" button (attempt ${attempts + 1})`);
+      const loadMoreBtn = Array.from(document.querySelectorAll("button")).find(
+        (btn) => btn.textContent?.trim().toUpperCase().includes("SEE MORE")
+      );
+
+      if (
+        loadMoreBtn &&
+        !loadMoreBtn.disabled &&
+        loadMoreBtn.style.display !== "none"
+      ) {
+        console.log(
+          `📋 Clicking "SEE MORE MATCHES" button (attempt ${attempts + 1})`
+        );
         loadMoreBtn.click();
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       } else {
         // Scroll to bottom
         if (scrollContainer === document.documentElement) {
@@ -362,12 +405,16 @@ async function loadAllVehicles(page) {
         } else {
           scrollContainer.scrollTop = scrollContainer.scrollHeight;
         }
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
 
       const newCount = countVehicles();
-      console.log(`📈 Vehicle count: ${initialCount} → ${newCount} (attempt ${attempts + 1})`);
-      
+      console.log(
+        `📈 Vehicle count: ${initialCount} → ${newCount} (attempt ${
+          attempts + 1
+        })`
+      );
+
       if (newCount <= initialCount) break;
       attempts++;
     }
@@ -379,87 +426,131 @@ async function loadAllVehicles(page) {
 }
 
 // Helper function to extract vehicle data
-async function extractVehicleData(page, auctionIndex, auctionLocation, limit = 100) {
-  return await page.evaluate((idx, location, maxVehicles) => {
-    const vehicles = [];
-    
-    // Find vehicle elements
-    const selectors = [".vehicle-list-item", '[class*="vehicle-list"]', '[class*="vehicle-row"]', 
-                      "tbody tr", ".MuiTableBody-root tr", '[role="row"]', '[data-testid*="vehicle"]'];
-    
-    let vehicleElements = [];
-    let bestSelector = "";
-    
-    for (const selector of selectors) {
-      const elements = document.querySelectorAll(selector);
-      if (elements.length > vehicleElements.length) {
-        vehicleElements = elements;
-        bestSelector = selector;
+async function extractVehicleData(
+  page,
+  auctionIndex,
+  auctionLocation,
+  limit = 100
+) {
+  return await page.evaluate(
+    (idx, location, maxVehicles) => {
+      const vehicles = [];
+
+      // Find vehicle elements
+      const selectors = [
+        ".vehicle-list-item",
+        '[class*="vehicle-list"]',
+        '[class*="vehicle-row"]',
+        "tbody tr",
+        ".MuiTableBody-root tr",
+        '[role="row"]',
+        '[data-testid*="vehicle"]',
+      ];
+
+      let vehicleElements = [];
+      let bestSelector = "";
+
+      for (const selector of selectors) {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > vehicleElements.length) {
+          vehicleElements = elements;
+          bestSelector = selector;
+        }
       }
-    }
 
-    console.log(`🔍 Found ${vehicleElements.length} vehicles using "${bestSelector}"`);
-    
-    const toProcess = Math.min(vehicleElements.length, maxVehicles);
-    console.log(`📋 Processing ${toProcess} vehicles (limited for testing)...`);
+      console.log(
+        `🔍 Found ${vehicleElements.length} vehicles using "${bestSelector}"`
+      );
 
-    for (let i = 0; i < toProcess; i++) {
-      try {
-        const element = vehicleElements[i];
-        
-        // Extract VIN
-        let vin = null;
-        const vinElement = element.querySelector('.vehicle-vin-Mc8Le, .vehicle-vin, [class*="vehicle-vin"]');
-        if (vinElement) {
-          vin = vinElement.textContent?.trim().replace(/[^A-HJ-NPR-Z0-9]/gi, "");
-        }
-        
-        // Fallback VIN extraction
-        if (!vin) {
-          const vinMatch = element.textContent?.match(/[A-HJ-NPR-Z0-9\s\-]{15,20}/);
-          if (vinMatch) {
-            vin = vinMatch[0].replace(/[^A-HJ-NPR-Z0-9]/gi, "");
+      const toProcess = Math.min(vehicleElements.length, maxVehicles);
+      console.log(
+        `📋 Processing ${toProcess} vehicles (limited for testing)...`
+      );
+
+      for (let i = 0; i < toProcess; i++) {
+        try {
+          const element = vehicleElements[i];
+
+          // Extract VIN
+          let vin = null;
+          const vinElement = element.querySelector(
+            '.vehicle-vin-Mc8Le, .vehicle-vin, [class*="vehicle-vin"]'
+          );
+          if (vinElement) {
+            vin = vinElement.textContent
+              ?.trim()
+              .replace(/[^A-HJ-NPR-Z0-9]/gi, "");
           }
-        }
 
-        // Validate VIN
-        if (vin && vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
-          // Extract other data
-          const ymmt = element.querySelector('.vehicle-ymmt-I4Jge, .vehicle-ymmt, [class*="ymmt"]')?.textContent?.trim();
-          const runNumber = element.querySelector('.vehicle-run-number-yx1uJ, .vehicle-run-number, [class*="run-number"]')?.textContent?.trim();
-          const mileage = element.querySelector('.vehicle-mileage-aQs6j, .vehicle-mileage, [class*="mileage"]')?.textContent?.trim();
-          
-          // Parse YMMT
-          const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
-          const year = ymmtParts[0] || "Unknown";
-          const make = ymmtParts[1] || "Unknown";
-          const model = ymmtParts[2] || "Unknown";
-          const trim = ymmtParts.slice(3).join(" ") || "Unknown";
-
-          vehicles.push({
-            vin,
-            runNumber: runNumber || "Unknown",
-            year, make, model, trim,
-            mileage: mileage || "Unknown",
-            ymmt: ymmt || "Unknown",
-            auctionLocation: location,
-            auctionIndex: idx + 1,
-            scrapedAt: new Date().toISOString()
-          });
-
-          // Progress logging
-          if (vehicles.length % 25 === 0) {
-            console.log(`✅ Extracted ${vehicles.length} vehicles so far...`);
+          // Fallback VIN extraction
+          if (!vin) {
+            const vinMatch = element.textContent?.match(
+              /[A-HJ-NPR-Z0-9\s\-]{15,20}/
+            );
+            if (vinMatch) {
+              vin = vinMatch[0].replace(/[^A-HJ-NPR-Z0-9]/gi, "");
+            }
           }
+
+          // Validate VIN
+          if (vin && vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
+            // Extract other data
+            const ymmt = element
+              .querySelector(
+                '.vehicle-ymmt-I4Jge, .vehicle-ymmt, [class*="ymmt"]'
+              )
+              ?.textContent?.trim();
+            const runNumber = element
+              .querySelector(
+                '.vehicle-run-number-yx1uJ, .vehicle-run-number, [class*="run-number"]'
+              )
+              ?.textContent?.trim();
+            const mileage = element
+              .querySelector(
+                '.vehicle-mileage-aQs6j, .vehicle-mileage, [class*="mileage"]'
+              )
+              ?.textContent?.trim();
+
+            // Parse YMMT
+            const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
+            const year = ymmtParts[0] || "Unknown";
+            const make = ymmtParts[1] || "Unknown";
+            const model = ymmtParts[2] || "Unknown";
+            const trim = ymmtParts.slice(3).join(" ") || "Unknown";
+
+            vehicles.push({
+              vin,
+              runNumber: runNumber || "Unknown",
+              year,
+              make,
+              model,
+              trim,
+              mileage: mileage || "Unknown",
+              ymmt: ymmt || "Unknown",
+              auctionLocation: location,
+              auctionIndex: idx + 1,
+              scrapedAt: new Date().toISOString(),
+            });
+
+            // Progress logging
+            if (vehicles.length % 25 === 0) {
+              console.log(`✅ Extracted ${vehicles.length} vehicles so far...`);
+            }
+          }
+        } catch (err) {
+          // Silent error handling for individual vehicles
         }
-      } catch (err) {
-        // Silent error handling for individual vehicles
       }
-    }
 
-    console.log(`✅ Successfully extracted ${vehicles.length} valid vehicles`);
-    return vehicles;
-  }, auctionIndex, auctionLocation, limit);
+      console.log(
+        `✅ Successfully extracted ${vehicles.length} valid vehicles`
+      );
+      return vehicles;
+    },
+    auctionIndex,
+    auctionLocation,
+    limit
+  );
 }
 
 // Helper function to navigate back to auctions
@@ -467,19 +558,20 @@ async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
   try {
     console.log(`🔙 Going back to previous page...`);
     await page.goBack({ waitUntil: "networkidle2", timeout: 10000 });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Verify we're back on auctions page
     console.log(`🔍 Verifying auction cards are visible...`);
     await page.waitForSelector(auctionsSelector, { timeout: 8000 });
-    
-    const cardCount = await page.$$eval(auctionsSelector, els => els.length);
-    console.log(`✅ Successfully returned to auctions page (${cardCount} cards found)`);
-    
+
+    const cardCount = await page.$$eval(auctionsSelector, (els) => els.length);
+    console.log(
+      `✅ Successfully returned to auctions page (${cardCount} cards found)`
+    );
   } catch (error) {
     console.log(`⚠️ Navigation back failed: ${error.message}`);
     console.log(`🔄 Attempting page refresh...`);
-    
+
     try {
       await page.reload({ waitUntil: "networkidle2", timeout: 10000 });
       await page.waitForSelector(auctionsSelector, { timeout: 8000 });
@@ -668,9 +760,11 @@ async function scrapeAuctions() {
     }
 
     console.log(`✅ Scraped and saved ${vehicles.length} vehicles`);
-    saveJSON("./data/vehicles.json", vehicles);
+    const filename = generateDateFilename("vehicles");
+    saveJSON(filename, vehicles);
+    console.log(`📁 Data saved to: ${filename}`);
 
-    return vehicles;
+    return { vehicles, filename };
   } catch (error) {
     console.error("❌ Error in scrapeAuctions:", error.message);
     throw error;
