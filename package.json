@@ -25,5 +25,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "A bot for enriching vehicle data with vAuto evaluations"
+  "description": "A bot for enriching vehicle data with vAuto evaluations",
+  "engines": {
+    "node": "18.x"
+  }
 }
