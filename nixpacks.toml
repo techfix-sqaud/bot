@@ -1,6 +1,4 @@
-[providers]
-# Use Node.js provider as the primary provider
-nodejs = "18.x"
+providers = ["nodejs"]
 
 [phases.setup]
 # Install system dependencies required for Chromium and Puppeteer
