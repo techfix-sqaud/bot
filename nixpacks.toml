@@ -1,52 +1,81 @@
-[build]
-cmd = "npm ci"
-
-[start]
-cmd = "./start-nixpacks.sh"
-
-[env]
-NODE_ENV = "production"
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"  # Let Puppeteer use system Chromium
-DISPLAY = ":99"
+[providers]
+# Use Node.js provider as the primary provider
+nodejs = "18.x"
 
 [phases.setup]
-# Install Chromium + Node.js + Xvfb
-nixpkgs = ["nodejs_20", "xvfb-run", "chromium"]
-
-# Optional: Only needed if Coolify blends apt (some Coolify setups do)
-aptPkgs = [
+# Install system dependencies required for Chromium and Puppeteer
+nixPkgs = [
+  # Core dependencies for Chromium
+  "chromium",
+  "nss",
+  "freetype",
+  "harfbuzz",
   "ca-certificates",
-  "fonts-liberation",
-  "libasound2",
-  "libatk-bridge2.0-0",
-  "libatk1.0-0",
-  "libdrm2",
-  "libgtk-3-0",
-  "libnspr4",
-  "libnss3",
-  "libxss1",
-  "libxtst6",
-  "xdg-utils",
-  "libgbm1",
-  "libxcomposite1",
-  "libxcursor1",
-  "libxdamage1",
-  "libxfixes3",
-  "libxi6",
-  "libxrandr2",
-  "libxrender1",
-  "xvfb",
-  "dbus"
+  "ttf-freefont",
+  "fontconfig",
+  
+  # Additional dependencies for headless Chrome
+  "glib",
+  "gtk3",
+  "libdrm",
+  "libxss",
+  "mesa",
+  "xorg.libX11",
+  "xorg.libXcomposite",
+  "xorg.libXdamage",
+  "xorg.libXext",
+  "xorg.libXfixes",
+  "xorg.libXrandr",
+  "xorg.libxcb",
+  "alsa-lib",
+  "atk",
+  "cups",
+  "dbus",
+  "expat",
+  "libxkbcommon",
+  "pango",
+  "at-spi2-atk",
+  "at-spi2-core",
+  "cairo",
+  "gdk-pixbuf",
+  "libuuid",
+  
+  # Process and memory management
+  "procps",
+  "util-linux"
 ]
 
 [phases.install]
-dependsOn = ["setup"]
+# Set environment variables for Puppeteer and install dependencies
 cmds = [
-  "npm ci"
+  "npm ci --only=production",
+  # Skip Chromium download since we're using system Chromium
+  "npm config set puppeteer_skip_chromium_download true"
 ]
 
 [phases.build]
-dependsOn = ["install"]
+# Ensure data directory exists and set proper permissions
 cmds = [
-  "echo '✅ Build complete - Puppeteer will use system Chromium'"
+  "mkdir -p ./data",
+  "mkdir -p ./user_data",
+  "chmod 755 ./data",
+  "chmod 755 ./user_data",
+  "chmod +x start.js"
 ]
+
+[start]
+# Start the application using our production startup script
+cmd = "npm run start-production"
+
+[variables]
+# Environment variables for Puppeteer in headless server environment
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+PUPPETEER_EXECUTABLE_PATH = "/nix/store/*/bin/chromium"
+# Force production mode for server environment
+NODE_ENV = "production"
+# Chrome optimization flags for headless server
+CHROME_FLAGS = "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu"
+
+[build]
+# Build configuration
+buildCommand = "npm ci"

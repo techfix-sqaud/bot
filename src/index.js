@@ -1,46 +1,29 @@
+#!/usr/bin/env node
+
+/**
+ * Main entry point for vAuto Vehicle Enrichment Bot
+ * Starts the web interface by default
+ */
+
 require("dotenv").config();
-const VehicleDataOrchestrator = require("./orchestrator");
 
-// Example usage - you can modify this based on your needs
-const sampleUser = {
-  email: "user@example.com",
-  vins: [
-    // Add your VINs here, or leave empty to just scrape and export
-    // "1HGBH41JXMN109186",
-    // "2HGFA16506H000001"
-  ],
-};
+// Check if we're being called directly or imported
+if (require.main === module) {
+  console.log("🚀 Starting vAuto Vehicle Enrichment Bot...");
+  console.log("🌐 Starting web interface on port 3000...");
+  console.log("💡 Use CLI commands for automation: node cli.js --help");
+  console.log("");
 
-(async () => {
-  try {
-    console.log("🚀 Starting Vehicle Data Processing...");
+  const WebServer = require("./webServer");
+  const server = new WebServer();
 
-    const orchestrator = new VehicleDataOrchestrator();
-
-    // Configuration options
-    const options = {
-      user: sampleUser.vins.length > 0 ? sampleUser : null,
-      skipScraping: false, // Set to true to use existing data
-      exportFormat: "xlsx", // 'xlsx', 'csv', 'xls', or 'json'
-      exportFilename: null, // Leave null for auto-generated filename
-    };
-
-    console.log("\n📋 Configuration:");
-    console.log(`📊 Export format: ${options.exportFormat.toUpperCase()}`);
-    console.log(`🔄 Skip scraping: ${options.skipScraping ? "Yes" : "No"}`);
-    console.log(`👤 Process vAuto: ${options.user ? "Yes" : "No"}`);
-
-    // Run the complete workflow
-    const results = await orchestrator.runCompleteWorkflow(options);
-
-    console.log("\n✅ All processing completed successfully!");
-    console.log("\n📄 Files created:");
-    console.log(`📁 JSON: ${results.jsonFile}`);
-    if (results.exportFile) {
-      console.log(`📊 Export: ${results.exportFile}`);
-    }
-  } catch (error) {
-    console.error("❌ Process failed:", error.message);
-    process.exit(1);
-  }
-})();
+  server.start(3000);
+  console.log("📱 Open your browser to: http://localhost:3000");
+  console.log("");
+  console.log("Available CLI commands:");
+  console.log("  npm run scrape           # Complete workflow");
+  console.log("  npm run carmax           # CarMax scraping only");
+  console.log("  npm run vauto            # vAuto enrichment only");
+  console.log("  npm run status           # Show current status");
+  console.log("  npm run export           # Export vehicle data");
+}

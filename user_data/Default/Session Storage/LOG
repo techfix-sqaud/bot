@@ -1,6 +1,5 @@
-2025/06/29-11:54:13.333 2f0b Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Session Storage/MANIFEST-000001
-2025/06/29-11:54:13.335 2f0b Recovering log #3
-2025/06/29-11:54:13.336 2f0b Reusing old log /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Session Storage/000003.log 
-2025/06/29-12:12:40.603 2007 Level-0 table #5: started
-2025/06/29-12:12:40.606 2007 Level-0 table #5: 16705 bytes OK
-2025/06/29-12:12:40.607 2007 Delete type=0 #3
+2025/06/30-22:47:19.902 300b Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Session Storage/MANIFEST-000001
+2025/06/30-22:47:19.941 300b Recovering log #36
+2025/06/30-22:47:19.944 300b Level-0 table #39: started
+2025/06/30-22:47:19.956 300b Level-0 table #39: 13378 bytes OK
+2025/06/30-22:47:19.970 300b Delete type=0 #36

@@ -1,49 +1,147 @@
 const puppeteer = require("puppeteer");
 const config = require("./config");
-const { saveJSON, generateDateFilename } = require("./utils");
-const { annotateVehiclesWithVAuto } = require("./vautoAnnotator");
+const { saveJSON, generateDateFilename, launchPuppeteer } = require("./utils");
+const annotateUser = require("./vautoAnnotator");
+
+async function loginWithRetry(page, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔐 Login attempt ${attempt}/${maxRetries}...`);
+      await login(page);
+      return true;
+    } catch (error) {
+      console.log(`❌ Login attempt ${attempt} failed: ${error.message}`);
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      // Wait before retry with exponential backoff
+      const delay = Math.min(5000 * Math.pow(2, attempt - 1), 30000);
+      console.log(`⏳ Waiting ${delay / 1000} seconds before retry...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      // Refresh page before retry
+      try {
+        await page.reload({ waitUntil: "networkidle0", timeout: 15000 });
+      } catch (reloadError) {
+        console.log(`⚠️ Page reload failed: ${reloadError.message}`);
+        await page.goto(config.carmaxUrl, {
+          waitUntil: "networkidle2",
+          timeout: 30000,
+        });
+      }
+    }
+  }
+}
 
 async function login(page) {
-  await page.goto(config.carmaxUrl, { waitUntil: "networkidle2" });
-  await page.waitForSelector("hzn-button");
-  await page.evaluate(() => {
-    const btn = document.querySelector("hzn-button");
-    btn.shadowRoot.querySelector("button").click();
-  });
-  await page.waitForSelector("hzn-input#signInName", { visible: true });
-  const carmaxEmail = process.env.CARMAX_EMAIL;
-  await page.evaluate((email) => {
-    const inp = document.querySelector("hzn-input#signInName");
-    const i = inp.shadowRoot.querySelector("input");
-    i.value = email;
-    i.dispatchEvent(new Event("input", { bubbles: true }));
-    i.dispatchEvent(new Event("change", { bubbles: true }));
-  }, carmaxEmail);
-  await page.waitForSelector("hzn-button#continueWithEmail");
-  await page.evaluate(() => {
-    document
-      .querySelector("hzn-button#continueWithEmail")
-      .shadowRoot.querySelector("button")
-      .click();
-  });
-  await new Promise((resolve) => setTimeout(resolve, 4000));
-  const carmaxPassword = process.env.CARMAX_PASSWORD;
+  try {
+    console.log("🌐 Navigating to CarMax...");
 
-  if (!carmaxPassword) {
-    throw new Error(
-      "CARMAX_PASSWORD environment variable is not set or is empty"
-    );
+    // Use multiple navigation strategies to handle HTTP/2 issues
+    const navigationOptions = [
+      { waitUntil: "networkidle2", timeout: 30000 },
+      { waitUntil: "domcontentloaded", timeout: 20000 },
+      { waitUntil: "load", timeout: 15000 },
+    ];
+
+    let navigationSuccess = false;
+    for (const options of navigationOptions) {
+      try {
+        await page.goto(config.carmaxUrl, options);
+        navigationSuccess = true;
+        break;
+      } catch (navError) {
+        console.log(
+          `⚠️ Navigation failed with ${options.waitUntil}: ${navError.message}`
+        );
+        if (options === navigationOptions[navigationOptions.length - 1]) {
+          throw navError;
+        }
+      }
+    }
+
+    if (!navigationSuccess) {
+      throw new Error("All navigation strategies failed");
+    }
+
+    console.log("✅ Successfully navigated to CarMax");
+
+    // Add delay to ensure page is fully loaded
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    await page.waitForSelector("hzn-button", { timeout: 15000 });
+    await page.evaluate(() => {
+      const btn = document.querySelector("hzn-button");
+      btn.shadowRoot.querySelector("button").click();
+    });
+
+    await page.waitForSelector("hzn-input#signInName", {
+      visible: true,
+      timeout: 15000,
+    });
+    const carmaxEmail = process.env.CARMAX_EMAIL;
+
+    if (!carmaxEmail) {
+      throw new Error("CARMAX_EMAIL environment variable is not set");
+    }
+
+    await page.evaluate((email) => {
+      const inp = document.querySelector("hzn-input#signInName");
+      const i = inp.shadowRoot.querySelector("input");
+      i.value = email;
+      i.dispatchEvent(new Event("input", { bubbles: true }));
+      i.dispatchEvent(new Event("change", { bubbles: true }));
+    }, carmaxEmail);
+
+    await page.waitForSelector("hzn-button#continueWithEmail", {
+      timeout: 10000,
+    });
+    await page.evaluate(() => {
+      document
+        .querySelector("hzn-button#continueWithEmail")
+        .shadowRoot.querySelector("button")
+        .click();
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+    const carmaxPassword = process.env.CARMAX_PASSWORD;
+
+    if (!carmaxPassword) {
+      throw new Error(
+        "CARMAX_PASSWORD environment variable is not set or is empty"
+      );
+    }
+
+    await page.type("#password", carmaxPassword, { delay: 100 });
+    await page.waitForSelector("hzn-button#continue", { timeout: 10000 });
+    await page.evaluate(() => {
+      document
+        .querySelector("hzn-button#continue")
+        .shadowRoot.querySelector("button")
+        .click();
+    });
+
+    // Handle navigation with multiple strategies
+    try {
+      await page.waitForNavigation({
+        waitUntil: "networkidle2",
+        timeout: 20000,
+      });
+    } catch (navError) {
+      console.log("⚠️ Navigation timeout, trying alternative wait...");
+      await page.waitForNavigation({
+        waitUntil: "domcontentloaded",
+        timeout: 15000,
+      });
+    }
+
+    console.log("✅ Login completed successfully");
+  } catch (error) {
+    console.error("❌ Login failed:", error.message);
+    throw error;
   }
-
-  await page.type("#password", carmaxPassword, { delay: 100 });
-  await page.waitForSelector("hzn-button#continue");
-  await page.evaluate(() => {
-    document
-      .querySelector("hzn-button#continue")
-      .shadowRoot.querySelector("button")
-      .click();
-  });
-  await page.waitForNavigation({ waitUntil: "networkidle2" });
 }
 
 async function navigateToAuctions(page) {
@@ -436,7 +534,6 @@ async function extractVehicleData(
   return await page.evaluate(
     (idx, location, maxVehicles) => {
       const vehicles = [];
-      const seenVINs = new Set(); // Track unique VINs to prevent duplicates
 
       // Find vehicle elements
       const selectors = [
@@ -496,14 +593,6 @@ async function extractVehicleData(
 
           // Validate VIN
           if (vin && vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
-            // Check if we've already seen this VIN to prevent duplicates
-            if (seenVINs.has(vin)) {
-              console.log(`⚠️ Skipping duplicate VIN: ${vin}`);
-              continue;
-            }
-
-            // Add VIN to seen set
-            seenVINs.add(vin);
             // Extract other data
             const ymmt = element
               .querySelector(
@@ -542,12 +631,9 @@ async function extractVehicleData(
               scrapedAt: new Date().toISOString(),
             });
 
-            // Enhanced progress logging with percentage
-            if (vehicles.length % 10 === 0 || i === toProcess - 1) {
-              const progress = (((i + 1) / toProcess) * 100).toFixed(1);
-              console.log(
-                `✅ Extracted ${vehicles.length} vehicles so far... (${progress}% of current auction)`
-              );
+            // Progress logging
+            if (vehicles.length % 25 === 0) {
+              console.log(`✅ Extracted ${vehicles.length} vehicles so far...`);
             }
           }
         } catch (err) {
@@ -556,7 +642,7 @@ async function extractVehicleData(
       }
 
       console.log(
-        `✅ Successfully extracted ${vehicles.length} unique vehicles (found ${seenVINs.size} unique VINs)`
+        `✅ Successfully extracted ${vehicles.length} valid vehicles`
       );
       return vehicles;
     },
@@ -564,228 +650,6 @@ async function extractVehicleData(
     auctionLocation,
     limit
   );
-}
-
-// Helper function to extract vehicle data specifically for My List
-async function extractMyListVehicleData(page, limit = 1000) {
-  return await page.evaluate((maxVehicles) => {
-    const vehicles = [];
-    const seenVINs = new Set(); // Track unique VINs to prevent duplicates
-
-    // Find vehicle elements - My List has specific structure with .vehicle-Tixca
-    const selectors = [
-      ".vehicle-Tixca", // Primary selector based on the provided HTML
-      ".vehicle-list-item",
-      ".saved-vehicle-item",
-      ".mylist-vehicle",
-      '[class*="vehicle-list"]',
-      '[class*="vehicle-row"]',
-      '[class*="vehicle-card"]',
-      '[class*="vehicle"]',
-      '[class*="saved-vehicle"]',
-      '[class*="mylist"]',
-      "tbody tr",
-      ".MuiTableBody-root tr",
-      '[role="row"]',
-      '[data-testid*="vehicle"]',
-      '[data-testid*="saved"]',
-      ".vehicle-item",
-      ".list-item",
-    ];
-
-    let vehicleElements = [];
-    let bestSelector = "";
-
-    for (const selector of selectors) {
-      const elements = document.querySelectorAll(selector);
-      if (elements.length > vehicleElements.length) {
-        vehicleElements = elements;
-        bestSelector = selector;
-      }
-    }
-
-    console.log(
-      `🔍 Found ${vehicleElements.length} vehicles in My List using "${bestSelector}"`
-    );
-
-    const toProcess = Math.min(vehicleElements.length, maxVehicles);
-    console.log(`📋 Processing ${toProcess} vehicles from My List...`);
-
-    for (let i = 0; i < toProcess; i++) {
-      try {
-        const element = vehicleElements[i];
-
-        // Extract VIN - based on the HTML structure: .vehicle-vin-VvhMG span
-        let vin = null;
-        const vinSelectors = [
-          ".vehicle-vin-VvhMG span", // Specific selector from provided HTML
-          ".vehicle-vin-Mc8Le",
-          ".vehicle-vin",
-          '[class*="vehicle-vin"] span',
-          '[class*="vehicle-vin"]',
-          '[class*="vin"] span',
-          '[class*="vin"]',
-          '[data-testid*="vin"]',
-          ".vin",
-        ];
-
-        for (const vinSelector of vinSelectors) {
-          const vinElement = element.querySelector(vinSelector);
-          if (vinElement) {
-            const vinText = vinElement.textContent
-              ?.trim()
-              .replace(/[^A-HJ-NPR-Z0-9]/gi, "");
-            if (vinText && vinText.length === 17) {
-              vin = vinText;
-              break;
-            }
-          }
-        }
-
-        // Fallback VIN extraction from text content
-        if (!vin || vin.length !== 17) {
-          const textContent = element.textContent || "";
-          const vinMatches = textContent.match(/[A-HJ-NPR-Z0-9]{17}/gi);
-          if (vinMatches && vinMatches.length > 0) {
-            vin = vinMatches[0];
-          }
-        }
-
-        // Validate VIN
-        if (vin && vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
-          // Check if we've already seen this VIN to prevent duplicates
-          if (seenVINs.has(vin)) {
-            console.log(`⚠️ Skipping duplicate VIN: ${vin}`);
-            continue;
-          }
-
-          // Add VIN to seen set
-          seenVINs.add(vin);
-          // Extract vehicle heading (YMMT) - based on HTML: .vehicle-heading-irWa8 span
-          let ymmt = null;
-          const ymmtSelectors = [
-            ".vehicle-heading-irWa8 span", // Specific selector from provided HTML
-            ".vehicle-heading-irWa8",
-            ".vehicle-ymmt-I4Jge",
-            ".vehicle-ymmt",
-            '[class*="vehicle-heading"] span',
-            '[class*="vehicle-heading"]',
-            '[class*="ymmt"]',
-            '[class*="vehicle-title"]',
-            '[class*="vehicle-name"]',
-            ".vehicle-details",
-            "h2",
-            "h3",
-            "h4", // Common heading tags for vehicle info
-          ];
-
-          for (const ymmtSelector of ymmtSelectors) {
-            const ymmtElement = element.querySelector(ymmtSelector);
-            if (ymmtElement) {
-              ymmt = ymmtElement.textContent?.trim();
-              if (ymmt && ymmt.length > 5) break; // Basic validation
-            }
-          }
-
-          // Extract run number - based on HTML: .vehicle-run-number-TOWny
-          let runNumber = null;
-          const runNumberSelectors = [
-            ".vehicle-run-number-TOWny", // Specific selector from provided HTML
-            ".vehicle-run-number-yx1uJ",
-            ".vehicle-run-number",
-            '[class*="run-number"]',
-            '[class*="lot-number"]',
-            '[data-testid*="run"]',
-            '[data-testid*="lot"]',
-          ];
-
-          for (const runSelector of runNumberSelectors) {
-            const runElement = element.querySelector(runSelector);
-            if (runElement) {
-              runNumber = runElement.textContent?.trim();
-              if (runNumber) break;
-            }
-          }
-
-          // Extract mileage from vehicle-info-n4bAH area
-          let mileage = null;
-          const mileageSelectors = [
-            ".vehicle-info-n4bAH span", // Look in vehicle info area from HTML
-            ".vehicle-mileage-aQs6j",
-            ".vehicle-mileage",
-            '[class*="vehicle-info"] span',
-            '[class*="mileage"]',
-            '[class*="miles"]',
-            '[data-testid*="mileage"]',
-            '[data-testid*="miles"]',
-          ];
-
-          for (const mileageSelector of mileageSelectors) {
-            const mileageElements = element.querySelectorAll(mileageSelector);
-            for (const mileageElement of mileageElements) {
-              const text = mileageElement.textContent?.trim();
-              if (text && (text.includes("mi") || text.includes("mile"))) {
-                mileage = text;
-                break;
-              }
-            }
-            if (mileage) break;
-          }
-
-          // Extract additional vehicle info (engine, transmission, etc.)
-          let additionalInfo = null;
-          const additionalInfoElements = element.querySelectorAll(
-            ".vehicle-info-n4bAH span"
-          );
-          if (additionalInfoElements.length > 1) {
-            // Usually the second span contains transmission and engine info
-            additionalInfo = additionalInfoElements[1]?.textContent?.trim();
-          }
-
-          // Parse YMMT
-          const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
-          const year = ymmtParts[0] || "Unknown";
-          const make = ymmtParts[1] || "Unknown";
-          const model = ymmtParts[2] || "Unknown";
-          const trim = ymmtParts.slice(3).join(" ") || "Unknown";
-
-          vehicles.push({
-            vin,
-            runNumber: runNumber || "Unknown",
-            year,
-            make,
-            model,
-            trim,
-            mileage: mileage || "Unknown",
-            ymmt: ymmt || "Unknown",
-            additionalInfo: additionalInfo || "Unknown", // Engine, transmission info
-            auctionLocation: "My List",
-            auctionIndex: 1,
-            scrapedAt: new Date().toISOString(),
-            source: "MyList", // Add source identifier
-          });
-
-          // Progress logging
-          if (vehicles.length % 5 === 0 || i === toProcess - 1) {
-            const progress = (((i + 1) / toProcess) * 100).toFixed(1);
-            console.log(
-              `✅ Extracted ${vehicles.length} vehicles from My List... (${progress}% complete)`
-            );
-          }
-        }
-      } catch (err) {
-        console.log(
-          `⚠️ Error processing vehicle ${i + 1} in My List:`,
-          err.message
-        );
-      }
-    }
-
-    console.log(
-      `✅ Successfully extracted ${vehicles.length} unique vehicles from My List (found ${seenVINs.size} unique VINs)`
-    );
-    return vehicles;
-  }, limit);
 }
 
 // Helper function to navigate back to auctions
@@ -815,6 +679,203 @@ async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
       console.log(`❌ Page refresh failed: ${refreshError.message}`);
       throw new Error("Unable to return to auctions page");
     }
+  }
+}
+
+async function scrapeAuctions() {
+  const browser = await launchPuppeteer({
+    headless: config.headless,
+    protocolTimeout: 120000, // 2 minutes protocol timeout
+    args: [
+      "--disable-dev-shm-usage",
+      "--disable-web-security",
+      "--disable-features=VizDisplayCompositor",
+    ],
+  });
+  const page = await browser.newPage();
+
+  // Set longer timeouts for page operations
+  page.setDefaultTimeout(60000); // 60 seconds default timeout
+  page.setDefaultNavigationTimeout(60000); // 60 seconds navigation timeout
+
+  // Add extra headers to help with HTTP/2 issues
+  await page.setExtraHTTPHeaders({
+    Accept:
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    DNT: "1",
+    Connection: "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+  });
+
+  try {
+    await loginWithRetry(page);
+    console.log("✅ Login completed");
+
+    const auctionsSelector = await navigateToAuctions(page);
+
+    // Wait for auction cards to load after clicking "Show all auctions"
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const auctionCards = await page.$$(auctionsSelector);
+    console.log(`Found ${auctionCards.length} auction cards to scrape`);
+
+    if (auctionCards.length === 0) {
+      console.log(
+        "⚠️ No auction cards found. You may need to update the selectors."
+      );
+
+      // Debug: Let's see what elements are actually on the page
+      const debugInfo = await page.evaluate(() => {
+        const allCards = document.querySelectorAll(
+          '[class*="card"], [class*="auction"], [class*="vehicle"]'
+        );
+        return {
+          totalElements: allCards.length,
+          elementClasses: Array.from(allCards)
+            .slice(0, 5)
+            .map((el) => el.className),
+          pageTitle: document.title,
+          url: window.location.href,
+        };
+      });
+      console.log("Debug info:", debugInfo);
+    }
+
+    const vehicles = [];
+    const maxAuctionsToProcess = Math.min(auctionCards.length, 10); // Process max 10 auctions to avoid long runtime
+
+    for (let i = 0; i < maxAuctionsToProcess; i++) {
+      console.log(
+        `🔍 Processing auction ${i + 1} of ${maxAuctionsToProcess} (out of ${
+          auctionCards.length
+        } total)`
+      );
+
+      // Enhanced auction card re-detection with retry logic
+      let currentAuctionsSelector = auctionsSelector;
+      let auctionProcessed = false;
+      const maxSelectorRetries = 3;
+
+      for (
+        let selectorRetry = 0;
+        selectorRetry < maxSelectorRetries;
+        selectorRetry++
+      ) {
+        try {
+          // Try to find auction cards with current selector
+          await page.waitForSelector(currentAuctionsSelector, {
+            timeout: 8000,
+          });
+
+          // Verify we have enough auction cards
+          const currentCardCount = await page.$$eval(
+            currentAuctionsSelector,
+            (els) => els.length
+          );
+
+          if (currentCardCount > i) {
+            console.log(
+              `✅ Found ${currentCardCount} auction cards with selector: ${currentAuctionsSelector}`
+            );
+            const vinBatch = await scrapeSingleAuction(
+              page,
+              currentAuctionsSelector,
+              i
+            );
+            vehicles.push(...vinBatch);
+            auctionProcessed = true;
+            break;
+          } else {
+            throw new Error(
+              `Not enough auction cards: need ${
+                i + 1
+              }, found ${currentCardCount}`
+            );
+          }
+        } catch (error) {
+          console.log(
+            `⚠️ Selector retry ${selectorRetry + 1}/${maxSelectorRetries}: ${
+              error.message
+            }`
+          );
+
+          if (selectorRetry < maxSelectorRetries - 1) {
+            // Try to re-detect auction cards with different selectors
+            console.log(`🔍 Attempting to re-detect auction cards...`);
+
+            const possibleSelectors = [
+              '[data-testid="auction-carousel-card"]',
+              ".auction-card-op7J1",
+              '[data-testid="auction-card"]',
+              ".auction-card",
+              '[class*="auction-card"]',
+              '[class*="auction"]',
+            ];
+
+            let foundAlternativeSelector = false;
+            for (const testSelector of possibleSelectors) {
+              try {
+                await page.waitForSelector(testSelector, { timeout: 3000 });
+                const testCards = await page.$$(testSelector);
+                if (testCards.length > i) {
+                  console.log(
+                    `✅ Found alternative selector with ${testCards.length} cards: ${testSelector}`
+                  );
+                  currentAuctionsSelector = testSelector;
+                  foundAlternativeSelector = true;
+                  break;
+                }
+              } catch (testError) {
+                // Continue to next selector
+              }
+            }
+
+            if (!foundAlternativeSelector) {
+              console.log(
+                "⚠️ No alternative selectors found, refreshing page..."
+              );
+              await page.reload({ waitUntil: "networkidle2", timeout: 15000 });
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+            }
+          }
+        }
+      }
+
+      if (!auctionProcessed) {
+        console.log(
+          `❌ Failed to process auction ${
+            i + 1
+          } after ${maxSelectorRetries} attempts, skipping remaining auctions`
+        );
+        break;
+      }
+
+      // Add a delay between auction processing to avoid overwhelming the server
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Log progress every few auctions
+      if ((i + 1) % 3 === 0) {
+        console.log(
+          `📊 Progress: Processed ${
+            i + 1
+          }/${maxAuctionsToProcess} auctions, collected ${
+            vehicles.length
+          } vehicles total`
+        );
+      }
+    }
+
+    console.log(`✅ Scraped and saved ${vehicles.length} vehicles`);
+    saveJSON("./data/vehicles.json", vehicles);
+
+    return vehicles;
+  } catch (error) {
+    console.error("❌ Error in scrapeAuctions:", error.message);
+    throw error;
+  } finally {
+    await browser.close();
   }
 }
 
@@ -1119,7 +1180,7 @@ async function navigateToMyList(page) {
 
           // Check if we successfully loaded a My List page
           const isMyListPage = await page.evaluate(() => {
-            const pageText = document.body.textContent.toLowerCase();
+            const pageText = document.body?.textContent?.toLowerCase() || "";
             const url = window.location.href.toLowerCase();
             const title = document.title.toLowerCase();
 
@@ -1252,7 +1313,7 @@ async function navigateToMyList(page) {
   const finalVerification = await page.evaluate(() => {
     const url = window.location.href.toLowerCase();
     const title = document.title.toLowerCase();
-    const bodyText = document.body.textContent.toLowerCase();
+    const bodyText = document.body?.textContent?.toLowerCase() || "";
 
     return {
       url,
@@ -1284,45 +1345,265 @@ async function navigateToMyList(page) {
   }
 }
 
-// Helper function to capture debug information when navigation fails
-async function captureDebugInfo(page, context = "unknown") {
-  try {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const screenshotPath = `./debug_screenshot_${context}_${timestamp}.png`;
+// Helper function to extract vehicles from My List
+async function extractMyListVehicles(page) {
+  console.log("🔍 Extracting vehicle data from My List...");
 
-    // Capture screenshot
-    await page.screenshot({
-      path: screenshotPath,
-      fullPage: true,
-    });
+  return await page.evaluate(() => {
+    const vehicles = [];
+    const seenVINs = new Set(); // Track unique VINs to prevent duplicates
 
-    console.log(`📸 Debug screenshot saved: ${screenshotPath}`);
+    // Find vehicle elements - My List has specific structure with .vehicle-Tixca
+    const selectors = [
+      ".vehicle-Tixca", // Primary selector based on the provided HTML
+      ".vehicle-list-item",
+      ".saved-vehicle-item",
+      ".mylist-vehicle",
+      '[class*="vehicle-list"]',
+      '[class*="vehicle-row"]',
+      '[class*="vehicle-card"]',
+      '[class*="vehicle"]',
+      '[class*="saved-vehicle"]',
+      '[class*="mylist"]',
+      "tbody tr",
+      ".MuiTableBody-root tr",
+      '[role="row"]',
+      '[data-testid*="vehicle"]',
+      '[data-testid*="saved"]',
+      ".vehicle-item",
+      ".list-item",
+    ];
 
-    // Capture page HTML for analysis
-    const htmlContent = await page.content();
-    const htmlPath = `./debug_html_${context}_${timestamp}.html`;
+    let vehicleElements = [];
+    let bestSelector = "";
 
-    require("fs").writeFileSync(htmlPath, htmlContent);
-    console.log(`📄 Page HTML saved: ${htmlPath}`);
+    for (const selector of selectors) {
+      const elements = document.querySelectorAll(selector);
+      if (elements.length > vehicleElements.length) {
+        vehicleElements = elements;
+        bestSelector = selector;
+      }
+    }
 
-    return {
-      screenshot: screenshotPath,
-      html: htmlPath,
-    };
-  } catch (error) {
-    console.log(`⚠️ Failed to capture debug info: ${error.message}`);
-    return null;
-  }
+    console.log(
+      `🔍 Found ${vehicleElements.length} vehicles in My List using "${bestSelector}"`
+    );
+
+    for (let i = 0; i < vehicleElements.length; i++) {
+      try {
+        const element = vehicleElements[i];
+
+        // Extract VIN - based on the HTML structure: .vehicle-vin-VvhMG span
+        let vin = null;
+        const vinSelectors = [
+          ".vehicle-vin-VvhMG span", // Specific selector from provided HTML
+          ".vehicle-vin-Mc8Le",
+          ".vehicle-vin",
+          '[class*="vehicle-vin"] span',
+          '[class*="vehicle-vin"]',
+          '[class*="vin"] span',
+          '[class*="vin"]',
+          '[data-testid*="vin"]',
+          ".vin",
+        ];
+
+        for (const vinSelector of vinSelectors) {
+          const vinElement = element.querySelector(vinSelector);
+          if (vinElement && vinElement.textContent) {
+            const vinText = vinElement.textContent
+              .trim()
+              .replace(/[^A-HJ-NPR-Z0-9]/gi, "");
+            if (vinText && vinText.length === 17) {
+              vin = vinText;
+              break;
+            }
+          }
+        }
+
+        // Fallback VIN extraction from text content
+        if (!vin || vin.length !== 17) {
+          const textContent = element.textContent || "";
+          const vinMatches = textContent.match(/[A-HJ-NPR-Z0-9]{17}/gi);
+          if (vinMatches && vinMatches.length > 0) {
+            console.log(`🔍 Fallback VIN extraction found: ${vinMatches[0]}`);
+            // Use the
+            vin = vinMatches[0];
+          }
+        }
+
+        // Validate VIN
+        if (vin && vin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
+          // Check if we've already seen this VIN to prevent duplicates
+          if (seenVINs.has(vin)) {
+            console.log(`⚠️ Skipping duplicate VIN: ${vin}`);
+            continue;
+          }
+
+          // Add VIN to seen set
+          seenVINs.add(vin);
+
+          // Extract vehicle heading (YMMT) - based on HTML: .vehicle-heading-irWa8 span
+          let ymmt = null;
+          const ymmtSelectors = [
+            ".vehicle-heading-irWa8 span", // Specific selector from provided HTML
+            ".vehicle-heading-irWa8",
+            ".vehicle-ymmt-I4Jge",
+            ".vehicle-ymmt",
+            '[class*="vehicle-heading"] span',
+            '[class*="vehicle-heading"]',
+            '[class*="ymmt"]',
+            '[class*="vehicle-title"]',
+            '[class*="vehicle-name"]',
+            ".vehicle-details",
+            "h2",
+            "h3",
+            "h4", // Common heading tags for vehicle info
+          ];
+
+          for (const ymmtSelector of ymmtSelectors) {
+            const ymmtElement = element.querySelector(ymmtSelector);
+            if (ymmtElement && ymmtElement.textContent) {
+              ymmt = ymmtElement.textContent.trim();
+              if (ymmt && ymmt.length > 5) break; // Basic validation
+            }
+          }
+
+          // Extract run number - based on HTML: .vehicle-run-number-TOWny
+          let runNumber = null;
+          const runNumberSelectors = [
+            ".vehicle-run-number-TOWny", // Specific selector from provided HTML
+            ".vehicle-run-number-yx1uJ",
+            ".vehicle-run-number",
+            '[class*="run-number"]',
+            '[class*="lot-number"]',
+            '[data-testid*="run"]',
+            '[data-testid*="lot"]',
+          ];
+
+          for (const runSelector of runNumberSelectors) {
+            const runElement = element.querySelector(runSelector);
+            if (runElement && runElement.textContent) {
+              runNumber = runElement.textContent.trim();
+              if (runNumber) break;
+            }
+          }
+
+          // Extract mileage from vehicle-info-n4bAH area
+          let mileage = null;
+          const mileageSelectors = [
+            ".vehicle-info-n4bAH span", // Look in vehicle info area from HTML
+            ".vehicle-mileage-aQs6j",
+            ".vehicle-mileage",
+            '[class*="vehicle-info"] span',
+            '[class*="mileage"]',
+            '[class*="miles"]',
+            '[data-testid*="mileage"]',
+            '[data-testid*="miles"]',
+          ];
+
+          for (const mileageSelector of mileageSelectors) {
+            const mileageElements = element.querySelectorAll(mileageSelector);
+            for (const mileageElement of mileageElements) {
+              if (mileageElement && mileageElement.textContent) {
+                const text = mileageElement.textContent.trim();
+                if (text && (text.includes("mi") || text.includes("mile"))) {
+                  mileage = text;
+                  break;
+                }
+              }
+            }
+            if (mileage) break;
+          }
+
+          // Extract additional vehicle info (engine, transmission, etc.)
+          let additionalInfo = null;
+          const additionalInfoElements = element.querySelectorAll(
+            ".vehicle-info-n4bAH span"
+          );
+          if (
+            additionalInfoElements.length > 1 &&
+            additionalInfoElements[1] &&
+            additionalInfoElements[1].textContent
+          ) {
+            // Usually the second span contains transmission and engine info
+            additionalInfo = additionalInfoElements[1].textContent.trim();
+          }
+
+          // Parse YMMT
+          const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
+          const year = ymmtParts[0] || "Unknown";
+          const make = ymmtParts[1] || "Unknown";
+          const model = ymmtParts[2] || "Unknown";
+          const trim = ymmtParts.slice(3).join(" ") || "Unknown";
+          console.log("amount of vehicles", vehicles.length);
+          vehicles.push({
+            vin,
+            runNumber: runNumber || "Unknown",
+            year,
+            make,
+            model,
+            trim,
+            mileage: mileage || "Unknown",
+            ymmt: ymmt || "Unknown",
+            additionalInfo: additionalInfo || "Unknown", // Engine, transmission info
+            auctionLocation: "My List",
+            auctionIndex: 1,
+            scrapedAt: new Date().toISOString(),
+            source: "MyList", // Add source identifier
+          });
+
+          // Progress logging
+          if (vehicles.length % 5 === 0 || i === vehicleElements.length - 1) {
+            const progress = (((i + 1) / vehicleElements.length) * 100).toFixed(
+              1
+            );
+            console.log(
+              `✅ Extracted ${vehicles.length} vehicles from My List... (${progress}% complete)`
+            );
+          }
+        }
+      } catch (err) {
+        console.log(
+          `⚠️ Error processing vehicle ${i + 1} in My List:`,
+          err.message
+        );
+      }
+    }
+
+    console.log(
+      `✅ Successfully extracted ${vehicles.length} unique vehicles from My List (found ${seenVINs.size} unique VINs)`
+    );
+    return vehicles;
+  });
 }
 
 // Function to scrape vehicles from My List
 async function scrapeMyList(jobId = null) {
-  const browser = await puppeteer.launch(config.getPuppeteerOptions());
+  const browser = await launchPuppeteer({
+    headless: config.headless,
+    protocolTimeout: 120000, // 2 minutes protocol timeout
+    args: [
+      "--disable-dev-shm-usage",
+      "--disable-web-security",
+      "--disable-features=VizDisplayCompositor",
+    ],
+  });
   const page = await browser.newPage();
 
   // Set longer timeouts for page operations
   page.setDefaultTimeout(60000); // 60 seconds default timeout
   page.setDefaultNavigationTimeout(60000); // 60 seconds navigation timeout
+
+  // Add extra headers to help with HTTP/2 issues
+  await page.setExtraHTTPHeaders({
+    Accept:
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    DNT: "1",
+    Connection: "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+  });
 
   // Utility function to check for cancellation
   const checkCancellation = () => {
@@ -1336,7 +1617,7 @@ async function scrapeMyList(jobId = null) {
   try {
     checkCancellation(); // Check before starting
 
-    await login(page);
+    await loginWithRetry(page);
     console.log("✅ Login completed");
 
     checkCancellation(); // Check after login
@@ -1351,7 +1632,7 @@ async function scrapeMyList(jobId = null) {
 
     // Check if My List is empty
     const isEmpty = await page.evaluate(() => {
-      const pageText = document.body.textContent.toLowerCase();
+      const pageText = document.body?.textContent?.toLowerCase() || "";
       return (
         pageText.includes("no vehicles") ||
         pageText.includes("empty list") ||
@@ -1379,7 +1660,7 @@ async function scrapeMyList(jobId = null) {
 
     // Extract vehicle data from My List
     console.log("🔍 Extracting vehicle data from My List...");
-    const vehicleData = await extractMyListVehicleData(page, 1000); // No limit for My List
+    const vehicleData = await extractMyListVehicles(page);
 
     vehicles.push(...vehicleData);
     console.log(`✅ Extracted ${vehicleData.length} vehicles from My List`);
@@ -1392,29 +1673,16 @@ async function scrapeMyList(jobId = null) {
       // Call vAuto annotator to enrich the data
       console.log("🔄 Starting vAuto annotation for My List vehicles...");
       try {
-        const annotatedResult = await annotateVehiclesWithVAuto(
-          filename,
-          jobId
-        );
+        // Create user object for vAuto annotation
+        const userForAnnotation = {
+          email: "mylist@carmax.com", // Placeholder email for My List vehicles
+          vins: vehicles
+            .map((v) => v.vin)
+            .filter((vin) => vin && vin !== "Unknown"),
+        };
 
-        if (annotatedResult && annotatedResult.filename) {
-          console.log(
-            `✅ vAuto annotation completed. Updated original file: ${annotatedResult.filename}`
-          );
-
-          return {
-            vehicles: annotatedResult.vehicles, // Use the enriched vehicles
-            filename: annotatedResult.filename, // This is the same as the original filename
-            summary: {
-              total: vehicles.length,
-              successful: vehicles.length,
-              failed: 0,
-              annotated: annotatedResult.summary.successful || 0,
-              annotationFailed: annotatedResult.summary.failed || 0,
-            },
-          };
-        } else {
-          console.log("⚠️ vAuto annotation failed or returned no data");
+        if (userForAnnotation.vins.length === 0) {
+          console.log("⚠️ No valid VINs found for vAuto annotation");
           return {
             vehicles,
             filename,
@@ -1426,6 +1694,57 @@ async function scrapeMyList(jobId = null) {
             },
           };
         }
+
+        console.log(
+          `🔍 Annotating ${userForAnnotation.vins.length} VINs with vAuto...`
+        );
+        const annotationResults = await annotateUser(userForAnnotation);
+
+        // Merge annotation results back into vehicle data
+        const annotatedVehicles = vehicles.map((vehicle) => {
+          const annotation = annotationResults.find(
+            (result) => result.vin === vehicle.vin && result.success
+          );
+
+          if (annotation && annotation.evaluation) {
+            return {
+              ...vehicle,
+              vautoData: annotation.evaluation,
+              vautoAnnotated: true,
+              vautoTimestamp: new Date().toISOString(),
+            };
+          }
+
+          return {
+            ...vehicle,
+            vautoAnnotated: false,
+            vautoError:
+              annotationResults.find((r) => r.vin === vehicle.vin)?.error ||
+              "No annotation available",
+          };
+        });
+
+        // Save the annotated data back to the same file
+        saveJSON(filename, annotatedVehicles);
+
+        const successfulAnnotations = annotationResults.filter(
+          (r) => r.success
+        ).length;
+        console.log(
+          `✅ vAuto annotation completed. ${successfulAnnotations}/${annotationResults.length} vehicles annotated`
+        );
+
+        return {
+          vehicles: annotatedVehicles,
+          filename,
+          summary: {
+            total: vehicles.length,
+            successful: vehicles.length,
+            failed: 0,
+            annotated: successfulAnnotations,
+            annotationFailed: annotationResults.length - successfulAnnotations,
+          },
+        };
       } catch (annotationError) {
         console.log(`❌ vAuto annotation failed: ${annotationError.message}`);
         // Return the original data even if annotation fails
@@ -1497,281 +1816,7 @@ async function scrapeMyList(jobId = null) {
       }
     }
 
-    // If it's a My List navigation error, capture debug information
-    if (error.message && error.message.includes("navigate to My List")) {
-      console.log(
-        "📸 Capturing debug information for My List navigation failure..."
-      );
-      try {
-        await captureDebugInfo(page, "mylist_navigation_failed");
-      } catch (debugError) {
-        console.log(`⚠️ Could not capture debug info: ${debugError.message}`);
-      }
-    }
-
     console.error("❌ Error in scrapeMyList:", error.message);
-    throw error;
-  } finally {
-    await browser.close();
-  }
-}
-
-async function scrapeAuctions(jobId = null) {
-  const browser = await puppeteer.launch(config.getPuppeteerOptions());
-  const page = await browser.newPage();
-
-  // Set longer timeouts for page operations
-  page.setDefaultTimeout(60000); // 60 seconds default timeout
-  page.setDefaultNavigationTimeout(60000); // 60 seconds navigation timeout
-
-  // Utility function to check for cancellation
-  const checkCancellation = () => {
-    if (jobId && global.jobCancellation && global.jobCancellation[jobId]) {
-      throw new Error("Job was cancelled by user request");
-    }
-  };
-
-  let vehicles = [];
-
-  try {
-    checkCancellation(); // Check before starting
-
-    await login(page);
-    console.log("✅ Login completed");
-
-    checkCancellation(); // Check after login
-
-    const auctionsSelector = await navigateToAuctions(page);
-
-    checkCancellation(); // Check after navigation
-
-    // Wait for auction cards to load after clicking "Show all auctions"
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const auctionCards = await page.$$(auctionsSelector);
-    console.log(`Found ${auctionCards.length} auction cards to scrape`);
-
-    if (auctionCards.length === 0) {
-      console.log(
-        "⚠️ No auction cards found. You may need to update the selectors."
-      );
-
-      // Debug: Let's see what elements are actually on the page
-      const debugInfo = await page.evaluate(() => {
-        const allCards = document.querySelectorAll(
-          '[class*="card"], [class*="auction"], [class*="vehicle"]'
-        );
-        return {
-          totalElements: allCards.length,
-          elementClasses: Array.from(allCards)
-            .slice(0, 5)
-            .map((el) => el.className),
-          pageTitle: document.title,
-          url: window.location.href,
-        };
-      });
-      console.log("Debug info:", debugInfo);
-    }
-
-    const vehicles = [];
-    const maxAuctionsToProcess = Math.min(auctionCards.length, 10); // Process max 10 auctions to avoid long runtime
-
-    // Progress tracking variables
-    let totalVehiclesExpected = 0;
-    let totalVehiclesProcessed = 0;
-    const startTime = Date.now();
-
-    for (let i = 0; i < maxAuctionsToProcess; i++) {
-      checkCancellation(); // Check before processing each auction
-
-      const remainingAuctions = maxAuctionsToProcess - i - 1;
-      console.log(
-        `🔍 Processing auction ${
-          i + 1
-        } of ${maxAuctionsToProcess} (${remainingAuctions} remaining) (out of ${
-          auctionCards.length
-        } total)`
-      );
-
-      // Enhanced auction card re-detection with retry logic
-      let currentAuctionsSelector = auctionsSelector;
-      let auctionProcessed = false;
-      const maxSelectorRetries = 3;
-
-      for (
-        let selectorRetry = 0;
-        selectorRetry < maxSelectorRetries;
-        selectorRetry++
-      ) {
-        try {
-          // Try to find auction cards with current selector
-          await page.waitForSelector(currentAuctionsSelector, {
-            timeout: 8000,
-          });
-
-          // Verify we have enough auction cards
-          const currentCardCount = await page.$$eval(
-            currentAuctionsSelector,
-            (els) => els.length
-          );
-
-          if (currentCardCount > i) {
-            console.log(
-              `✅ Found ${currentCardCount} auction cards with selector: ${currentAuctionsSelector}`
-            );
-            const vinBatch = await scrapeSingleAuction(
-              page,
-              currentAuctionsSelector,
-              i
-            );
-            vehicles.push(...vinBatch);
-
-            // Update progress tracking
-            totalVehiclesProcessed += vinBatch.length;
-
-            // Calculate ETA
-            const elapsedTime = Date.now() - startTime;
-            const avgTimePerAuction = elapsedTime / (i + 1);
-            const remainingAuctions = maxAuctionsToProcess - (i + 1);
-            const estimatedTimeRemaining = Math.round(
-              (avgTimePerAuction * remainingAuctions) / 1000 / 60
-            ); // in minutes
-
-            const etaText = i > 0 ? ` - ETA: ${estimatedTimeRemaining}min` : "";
-
-            console.log(
-              `📊 Progress Update: Processed ${totalVehiclesProcessed} vehicles so far from ${
-                i + 1
-              }/${maxAuctionsToProcess} auctions${etaText}`
-            );
-
-            auctionProcessed = true;
-            break;
-          } else {
-            throw new Error(
-              `Not enough auction cards: need ${
-                i + 1
-              }, found ${currentCardCount}`
-            );
-          }
-        } catch (error) {
-          console.log(
-            `⚠️ Selector retry ${selectorRetry + 1}/${maxSelectorRetries}: ${
-              error.message
-            }`
-          );
-
-          if (selectorRetry < maxSelectorRetries - 1) {
-            // Try to re-detect auction cards with different selectors
-            console.log(`🔍 Attempting to re-detect auction cards...`);
-
-            const possibleSelectors = [
-              '[data-testid="auction-carousel-card"]',
-              ".auction-card-op7J1",
-              '[data-testid="auction-card"]',
-              ".auction-card",
-              '[class*="auction-card"]',
-              '[class*="auction"]',
-            ];
-
-            let foundAlternativeSelector = false;
-            for (const testSelector of possibleSelectors) {
-              try {
-                await page.waitForSelector(testSelector, { timeout: 3000 });
-                const testCards = await page.$$(testSelector);
-                if (testCards.length > i) {
-                  console.log(
-                    `✅ Found alternative selector with ${testCards.length} cards: ${testSelector}`
-                  );
-                  currentAuctionsSelector = testSelector;
-                  foundAlternativeSelector = true;
-                  break;
-                }
-              } catch (testError) {
-                // Continue to next selector
-              }
-            }
-
-            if (!foundAlternativeSelector) {
-              console.log(
-                "⚠️ No alternative selectors found, refreshing page..."
-              );
-              await page.reload({ waitUntil: "networkidle2", timeout: 15000 });
-              await new Promise((resolve) => setTimeout(resolve, 3000));
-            }
-          }
-        }
-      }
-
-      if (!auctionProcessed) {
-        console.log(
-          `❌ Failed to process auction ${
-            i + 1
-          } after ${maxSelectorRetries} attempts, skipping remaining auctions`
-        );
-        break;
-      }
-
-      // Add a delay between auction processing to avoid overwhelming the server
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Log progress every few auctions
-      if ((i + 1) % 3 === 0) {
-        console.log(
-          `📊 Progress: Processed ${
-            i + 1
-          }/${maxAuctionsToProcess} auctions, collected ${
-            vehicles.length
-          } vehicles total`
-        );
-      }
-    }
-
-    console.log(`✅ Scraped and saved ${vehicles.length} vehicles`);
-    const filename = generateDateFilename("vehicles");
-    saveJSON(filename, vehicles);
-    console.log(`📁 Data saved to: ${filename}`);
-
-    return { vehicles, filename };
-  } catch (error) {
-    // Check if this was a cancellation
-    if (error.message && error.message.includes("cancelled")) {
-      console.log("🛑 CarMax scraping was cancelled");
-
-      // Save whatever we got so far if we have any vehicles
-      if (vehicles && vehicles.length > 0) {
-        const filename = generateDateFilename("vehicles_cancelled");
-        saveJSON(filename, vehicles);
-        console.log(
-          `💾 Partial data saved to: ${filename} (${vehicles.length} vehicles)`
-        );
-
-        return {
-          vehicles,
-          filename,
-          cancelled: true,
-          summary: {
-            total: vehicles.length,
-            successful: vehicles.length,
-            failed: 0,
-          },
-        };
-      } else {
-        console.log("🛑 No vehicles were scraped before cancellation");
-        return {
-          vehicles: [],
-          filename: null,
-          cancelled: true,
-          summary: {
-            total: 0,
-            successful: 0,
-            failed: 0,
-          },
-        };
-      }
-    }
-
-    console.error("❌ Error in scrapeAuctions:", error.message);
     throw error;
   } finally {
     await browser.close();

@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 const config = require("./config");
-const { saveJSON, loadJSON } = require("./utils");
+const { saveJSON, loadJSON, launchPuppeteer } = require("./utils");
 require("dotenv").config();
 
 /**
@@ -11,7 +11,9 @@ async function loginToVAuto(page) {
 
   await page.goto(config.vautoUrl, { waitUntil: "networkidle2" });
 
-  const pageContent = await page.evaluate(() => document.body.textContent);
+  const pageContent = await page.evaluate(
+    () => document.body?.textContent || ""
+  );
 
   if (!pageContent.includes("Sign in to vAuto")) {
     console.log("✅ Already logged into vAuto");
@@ -52,7 +54,9 @@ async function loginToVAuto(page) {
 
     // Check if we're on the main vAuto page (successful login)
     const currentUrl = page.url();
-    const pageContent = await page.evaluate(() => document.body.textContent);
+    const pageContent = await page.evaluate(
+      () => document.body?.textContent || ""
+    );
 
     if (
       currentUrl.includes("platform") ||
@@ -65,7 +69,7 @@ async function loginToVAuto(page) {
     // Check for 2FA requirement
     const has2FA = await page.evaluate(() => {
       // Look for common 2FA indicators
-      const text = document.body.textContent.toLowerCase();
+      const text = document.body?.textContent?.toLowerCase() || "";
       const codeInputs = document.querySelectorAll(
         "input[type='text'], input[type='number']"
       );
@@ -108,7 +112,9 @@ async function loginToVAuto(page) {
   } catch (error) {
     // If we timeout waiting for navigation, check if we're already logged in
     const currentUrl = page.url();
-    const pageContent = await page.evaluate(() => document.body.textContent);
+    const pageContent = await page.evaluate(
+      () => document.body?.textContent || ""
+    );
 
     if (
       currentUrl.includes("platform") ||
@@ -198,7 +204,7 @@ async function getVAutoEvaluation(page, vin, mileage) {
       if (rows.length > 0) {
         data.accidentDamage = rows.map((row) => {
           const columns = Array.from(row.querySelectorAll("td"));
-          return columns.map((col) => col.textContent.trim());
+          return columns.map((col) => col?.textContent?.trim() || "");
         });
       } else {
         data.accidentDamage = [];
@@ -300,33 +306,30 @@ async function enrichVehiclesWithVAuto(jobId = null) {
     }
   };
 
-  const browser = await puppeteer.launch(
-    config.getPuppeteerOptions({
-      userDataDir: "./user_data",
-      headless: config.show2FA ? false : config.headless, // Always show browser if 2FA handling is enabled
-      args: [
-        "--disable-infobars",
-        "--window-position=0,0",
-        "--ignore-certificate-errors",
-        "--ignore-certificate-errors-spki-list",
-        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      ],
-    })
-  );
+  const browser = await launchPuppeteer({
+    headless: config.show2FA ? false : config.headless, // Always show browser if 2FA handling is enabled
+    userDataDir: "./user_data",
+    args: [
+      "--disable-infobars",
+      "--window-position=0,0",
+      "--ignore-certificate-errors",
+      "--ignore-certificate-errors-spki-list",
+      "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    ],
+  });
 
   const vautoPage = await browser.newPage();
   let vehicles = []; // Initialize to ensure it's accessible in catch block
 
   try {
     checkCancellation(); // Check before starting
-
     // Login to vAuto only
     await loginToVAuto(vautoPage);
 
     checkCancellation(); // Check after login
 
     // Load existing vehicles data
-    vehicles = loadJSON("./data/vehicles.json");
+    let vehicles = loadJSON("./data/vehicles.json");
     console.log(`📋 Loaded ${vehicles.length} existing vehicles from JSON`);
 
     if (vehicles.length === 0) {
@@ -349,7 +352,14 @@ async function enrichVehiclesWithVAuto(jobId = null) {
 
     if (vehiclesToProcess.length === 0) {
       console.log("✅ All vehicles already have vAuto data");
-      return;
+      return {
+        vehicles,
+        summary: {
+          total: 0,
+          successful: 0,
+          failed: 0,
+        },
+      };
     }
 
     let successCount = 0;

@@ -1,105 +1,15 @@
 const fs = require("fs");
-const path = require("path");
 const _ = require("lodash");
-const XLSX = require("xlsx");
-const moment = require("moment");
+const puppeteer = require("puppeteer");
 
-// Generate date-based filename
-exports.generateDateFilename = (baseName, extension = "json") => {
-  const dateStr = moment().format("YYYY-MM-DD_HH-mm-ss");
-  return `./data/${baseName}_${dateStr}.${extension}`;
-};
-
-// Get the most recent file matching a pattern
-exports.getMostRecentFile = (pattern) => {
-  const dataDir = "./data";
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-    return null;
-  }
-
-  const files = fs
-    .readdirSync(dataDir)
-    .filter((file) => file.includes(pattern) && file.endsWith(".json"))
-    .map((file) => ({
-      name: file,
-      path: path.join(dataDir, file),
-      mtime: fs.statSync(path.join(dataDir, file)).mtime,
-    }))
-    .sort((a, b) => b.mtime - a.mtime);
-
-  return files.length > 0 ? files[0].path : null;
-};
-
-exports.saveJSON = (file, data) => {
-  // Ensure data directory exists
-  const dir = path.dirname(file);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+exports.saveJSON = (file, data) =>
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
-  console.log(`💾 Saved JSON data to: ${file}`);
-};
 
 exports.loadJSON = (file) => {
   try {
     return JSON.parse(fs.readFileSync(file));
   } catch {
     return [];
-  }
-};
-
-// Export data to different formats
-exports.exportToExcel = (data, filename) => {
-  try {
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Vehicles");
-
-    // Auto-size columns
-    const cols = [];
-    const headers = Object.keys(data[0] || {});
-    headers.forEach(() => cols.push({ wch: 15 }));
-    ws["!cols"] = cols;
-
-    XLSX.writeFile(wb, filename);
-    console.log(`📊 Exported to Excel: ${filename}`);
-    return filename;
-  } catch (error) {
-    console.error(`❌ Error exporting to Excel: ${error.message}`);
-    throw error;
-  }
-};
-
-exports.exportToCSV = (data, filename) => {
-  try {
-    const ws = XLSX.utils.json_to_sheet(data);
-    const csv = XLSX.utils.sheet_to_csv(ws);
-    fs.writeFileSync(filename, csv);
-    console.log(`📊 Exported to CSV: ${filename}`);
-    return filename;
-  } catch (error) {
-    console.error(`❌ Error exporting to CSV: ${error.message}`);
-    throw error;
-  }
-};
-
-// Export with user choice of format
-exports.exportData = (data, baseName, format = "xlsx") => {
-  const dateStr = moment().format("YYYY-MM-DD_HH-mm-ss");
-  const filename = `./data/${baseName}_${dateStr}.${format}`;
-
-  switch (format.toLowerCase()) {
-    case "xlsx":
-    case "xls":
-      return exports.exportToExcel(data, filename);
-    case "csv":
-      return exports.exportToCSV(data, filename);
-    case "json":
-      exports.saveJSON(filename, data);
-      return filename;
-    default:
-      throw new Error(`Unsupported export format: ${format}`);
   }
 };
 
@@ -111,4 +21,110 @@ exports.fuzzyMatchVIN = (str, vinList) => {
   if (vinList.includes(str)) return str;
   // fallback fuzzy (could use string similarity)
   return _.find(vinList, (vin) => str.includes(vin.substring(0, 8))) || null;
+};
+
+/**
+ * Generate a filename with current date and time
+ * @param {string} prefix - The prefix for the filename
+ * @param {string} extension - The file extension (default: 'json')
+ * @returns {string} - Filename with date timestamp
+ */
+exports.generateDateFilename = (prefix, extension = "json") => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+
+  const timestamp = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+  return `./data/${prefix}_${timestamp}.${extension}`;
+};
+
+/**
+ * Get standardized Puppeteer launch configuration for server/development environments
+ * @param {Object} options - Additional launch options to merge
+ * @returns {Object} - Puppeteer launch configuration
+ */
+exports.getPuppeteerConfig = (options = {}) => {
+  // Determine the executable path for Chromium
+  let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+
+  // In production/server environments, try to find Chromium
+  if (process.env.NODE_ENV === "production" && !executablePath) {
+    const { execSync } = require("child_process");
+    try {
+      // Try common Chromium/Chrome paths
+      executablePath = execSync(
+        "which chromium || which google-chrome || which chrome",
+        {
+          encoding: "utf8",
+          stdio: "pipe",
+        }
+      ).trim();
+    } catch (error) {
+      // Fallback to Nix store path pattern
+      executablePath = "/nix/store/*/bin/chromium";
+    }
+  }
+
+  const defaultConfig = {
+    userDataDir: "./user_data",
+    headless:
+      process.env.NODE_ENV === "production"
+        ? true
+        : options.headless !== undefined
+        ? options.headless
+        : false,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-infobars",
+      "--window-position=0,0",
+      "--ignore-certificate-errors",
+      "--ignore-certificate-errors-spki-list",
+      "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    ],
+  };
+
+  // Add executable path for production/server environments
+  if (executablePath) {
+    defaultConfig.executablePath = executablePath;
+  }
+
+  // Add additional server-specific Chrome flags in production
+  if (process.env.NODE_ENV === "production") {
+    defaultConfig.args.push(
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--disable-gpu",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
+      "--disable-features=TranslateUI",
+      "--disable-ipc-flooding-protection",
+      "--single-process" // Use single process in resource-constrained environments
+    );
+  }
+
+  // Merge with provided options, giving priority to custom options
+  return {
+    ...defaultConfig,
+    ...options,
+    args: [...defaultConfig.args, ...(options.args || [])],
+  };
+};
+
+/**
+ * Launch Puppeteer with standardized configuration
+ * @param {Object} options - Additional launch options
+ * @returns {Promise} - Puppeteer browser instance
+ */
+exports.launchPuppeteer = async (options = {}) => {
+  const config = exports.getPuppeteerConfig(options);
+  console.log(`🚀 Launching browser with headless: ${config.headless}`);
+  return await puppeteer.launch(config);
 };
