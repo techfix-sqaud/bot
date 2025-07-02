@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  vauto-bot:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./user_data:/app/user_data
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Health check passed')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

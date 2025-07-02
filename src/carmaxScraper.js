@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
 const config = require("./config");
+require("dotenv").config();
 const { saveJSON, generateDateFilename, launchPuppeteer } = require("./utils");
 const annotateUser = require("./vautoAnnotator");
 

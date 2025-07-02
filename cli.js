@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * CLI interface for vAuto Vehicle Enrichment Bot
- * Supports multiple commands and modes as described in README
+ * CLI interface for CarMax-vAuto Vehicle Enrichment Bot
+ * Production-ready automation tool
  */
 
 const { program } = require("commander");
@@ -13,8 +13,8 @@ require("dotenv").config();
 const enrichVehiclesWithVAuto = require("./src/carmaxVautoScraper");
 
 program
-  .name("vauto-bot")
-  .description("vAuto Vehicle Enrichment Bot CLI")
+  .name("carmax-vauto-bot")
+  .description("CarMax to vAuto Vehicle Enrichment Bot")
   .version("1.0.0");
 
 // CarMax scraping command
@@ -24,13 +24,14 @@ program
   .option(
     "-m, --mode <mode>",
     'scraping mode: "auctions" or "mylist"',
-    "auctions"
+    "mylist"
   )
   .action(async (options) => {
     console.log(`🚀 Starting CarMax scraping in ${options.mode} mode...`);
 
     try {
       if (options.mode === "mylist") {
+        const { scrapeMyList } = require("./src/carmaxScraper");
         await scrapeMyList();
       } else if (options.mode === "auctions") {
         const carmaxScraper = require("./src/carmaxScraper");
@@ -61,7 +62,7 @@ program
         console.error(
           "❌ No vehicles found. Please run CarMax scraping first."
         );
-        console.log("💡 Try: npm run scrape or node cli.js carmax");
+        console.log("💡 Try: npm run carmax");
         process.exit(1);
       }
 
@@ -81,7 +82,7 @@ program
   .option(
     "-m, --mode <mode>",
     'CarMax scraping mode: "auctions" or "mylist"',
-    "auctions"
+    "mylist"
   )
   .action(async (options) => {
     console.log(`🚀 Starting complete workflow with ${options.mode} mode...`);
@@ -90,6 +91,7 @@ program
       // Step 1: CarMax scraping
       console.log("\n📦 Step 1: CarMax Scraping");
       if (options.mode === "mylist") {
+        const { scrapeMyList } = require("./src/carmaxScraper");
         await scrapeMyList();
       } else {
         const carmaxScraper = require("./src/carmaxScraper");
@@ -113,21 +115,6 @@ program
       console.error("❌ Complete workflow failed:", error.message);
       process.exit(1);
     }
-  });
-
-// Web interface command
-program
-  .command("web")
-  .description("Start web interface")
-  .option("-p, --port <port>", "port number", "3000")
-  .action((options) => {
-    console.log("🌐 Starting web interface...");
-
-    const WebServer = require("./src/webServer");
-    const server = new WebServer();
-
-    server.start(parseInt(options.port));
-    console.log(`📱 Open your browser to: http://localhost:${options.port}`);
   });
 
 // Status command
@@ -164,66 +151,20 @@ program
       console.log(
         `   CarMax credentials: ${process.env.CARMAX_EMAIL ? "✅" : "❌"}`
       );
-      console.log(
-        `   Node environment: ${process.env.NODE_ENV || "development"}`
-      );
     } catch (error) {
       console.log("   No vehicle data found");
-      console.log(`   ${error.message}`);
     }
   });
 
-// Export command
-program
-  .command("export")
-  .description("Export vehicle data to JSON file")
-  .option(
-    "-o, --output <file>",
-    "output filename",
-    `vehicles_export_${new Date().toISOString().split("T")[0]}.json`
-  )
-  .action((options) => {
-    console.log("📥 Exporting vehicle data...");
-
-    try {
-      const vehicles = loadJSON("./data/vehicles.json");
-      const fs = require("fs");
-
-      fs.writeFileSync(options.output, JSON.stringify(vehicles, null, 2));
-      console.log(
-        `✅ Exported ${vehicles.length} vehicles to: ${options.output}`
-      );
-    } catch (error) {
-      console.error("❌ Export failed:", error.message);
-      process.exit(1);
-    }
-  });
-
-// Helper function for My List scraping
-async function scrapeMyList() {
-  console.log("🔍 Scraping CarMax My List...");
-
-  const { scrapeMyList } = require("./src/carmaxScraper");
-  return await scrapeMyList();
-}
-
-// Handle unknown commands
-program.on("command:*", function (operands) {
-  console.error(`❌ Unknown command: ${operands[0]}`);
-  console.log("💡 Available commands:");
-  console.log("   carmax --mode=auctions    # Scrape all auctions");
-  console.log("   carmax --mode=mylist      # Scrape My List");
-  console.log("   vauto                     # Enrich with vAuto");
-  console.log("   complete --mode=auctions  # Full workflow");
-  console.log("   web                       # Start web interface");
-  console.log("   status                    # Show current status");
-  console.log("   export                    # Export data");
-  process.exit(1);
-});
+// Parse CLI arguments
+program.parse();
 
 // Show help if no command provided
 if (process.argv.length <= 2) {
-  program.help();
+  console.log("🚀 CarMax-vAuto Vehicle Enrichment Bot");
+  console.log("\nQuick Start:");
+  console.log("  npm run mylist     # Scrape My List");
+  console.log("  npm run auctions   # Scrape All Auctions");
+  console.log("  npm run scrape     # Complete workflow");
+  console.log("\nFor more options run: node cli.js --help");
 }
-
-program.parse();
