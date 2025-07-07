@@ -15,10 +15,17 @@
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
     "lodash": "^4.17.21",
+    "pg": "^8.16.3",
     "puppeteer": "^22.15.0",
     "socket.io": "^4.7.2"
   },
-  "keywords": ["carmax", "vauto", "vehicle", "scraper", "automation"],
+  "keywords": [
+    "carmax",
+    "vauto",
+    "vehicle",
+    "scraper",
+    "automation"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Automated CarMax vehicle scraper with vAuto enrichment",
