@@ -4,6 +4,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "setup": "node setup.js",
     "scrape": "node cli.js complete",
     "carmax": "node cli.js carmax",
     "vauto": "node cli.js vauto",
@@ -11,10 +12,15 @@
     "auctions": "node cli.js carmax --mode auctions"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "commander": "^9.4.1",
     "dotenv": "^16.6.1",
+    "ejs": "^3.1.10",
     "express": "^4.18.2",
+    "express-session": "^1.18.1",
+    "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
+    "otplib": "^12.0.1",
     "pg": "^8.16.3",
     "puppeteer": "^22.15.0",
     "socket.io": "^4.7.2"

@@ -53,27 +53,22 @@ async function loginWithRetry(page, maxRetries = 3) {
 
 async function login(page) {
   try {
-    const navigationOptions = [
-      { waitUntil: "networkidle2", timeout: 30000 },
-      { waitUntil: "domcontentloaded", timeout: 20000 },
-      { waitUntil: "load", timeout: 15000 },
-    ];
-
-    let navigationSuccess = false;
-    for (const options of navigationOptions) {
-      try {
-        await page.goto(config.carmaxUrl, options);
-        navigationSuccess = true;
-        break;
-      } catch (navError) {
-        if (options === navigationOptions[navigationOptions.length - 1])
-          throw navError;
-      }
+    // Try navigation with fallback
+    try {
+      await page.goto(config.carmaxUrl, {
+        waitUntil: "networkidle2",
+        timeout: 30000,
+      });
+    } catch {
+      await page.goto(config.carmaxUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 20000,
+      });
     }
 
-    if (!navigationSuccess) throw new Error("All navigation strategies failed");
     await sleep(3000);
 
+    // Login flow
     await page.waitForSelector("hzn-button", { timeout: 15000 });
     await page.evaluate(() =>
       document
@@ -157,37 +152,30 @@ async function navigateToAuctions(page) {
       }
     });
   } catch (error) {
-    // Continue if link not found
+    /* Continue if link not found */
   }
 
   await sleep(3000);
 
-  const possibleSelectors = [
+  for (const selector of [
     '[data-testid="auction-carousel-card"]',
     ".auction-card-op7J1",
     '[data-testid="auction-card"]',
     ".auction-card",
     '[class*="auction-card"]',
     '[class*="auction"]',
-    '[class*="card"]',
     ".card",
     "article",
-    '[role="article"]',
     'div[class*="grid"] > div',
-  ];
-
-  for (const selector of possibleSelectors) {
+  ]) {
     try {
       await page.waitForSelector(selector, { timeout: 3000 });
       const auctionCards = await page.$$(selector);
-      if (auctionCards.length > 0) {
-        return selector;
-      }
+      if (auctionCards.length > 0) return selector;
     } catch (e) {
-      // Continue to next selector
+      /* Continue to next selector */
     }
   }
-
   throw new Error("No auction cards found on the page");
 }
 
@@ -198,13 +186,66 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
     const auctionCards = await page.$$(auctionsSelector);
     if (!auctionCards[index]) return vehicles;
 
-    const auctionInfo = await getAuctionInfo(page, auctionCards[index], index);
-    const currentUrl = page.url();
-    if (!(await clickViewCarsButton(page, auctionCards[index], index + 1)))
-      return vehicles;
+    const auctionInfo = await page.evaluate(
+      (card, idx) => {
+        const locationElement =
+          card.querySelector(".auction-location, .location, h3, h4, .title") ||
+          card.querySelector(
+            "[data-testid*='location'], [data-testid*='title']"
+          );
+        return {
+          location:
+            locationElement?.textContent?.trim() || `Auction ${idx + 1}`,
+          text: card.textContent?.substring(0, 100) || "",
+        };
+      },
+      auctionCards[index],
+      index
+    );
 
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const totalCarsInfo = await getTotalCarsInfo(page);
+    const currentUrl = page.url();
+
+    // Click view cars button
+    const clickResult = await page.evaluate((card) => {
+      const buttons = card.querySelectorAll(
+        'hzn-button, button, a, [role="button"]'
+      );
+      for (const btn of buttons) {
+        const btnText = btn.textContent?.trim().toLowerCase();
+        if (btnText.includes("view cars")) {
+          if (
+            btn.disabled ||
+            btn.getAttribute("disabled") !== null ||
+            btn.hasAttribute("disabled") ||
+            btn.getAttribute("aria-disabled") === "true"
+          )
+            return "disabled";
+          try {
+            if (btn.tagName.toLowerCase() === "hzn-button") {
+              const shadowButton = btn.shadowRoot?.querySelector("button");
+              (shadowButton || btn).click();
+            } else {
+              btn.click();
+            }
+            return "clicked";
+          } catch (err) {}
+        }
+      }
+      return "not_found";
+    }, auctionCards[index]);
+
+    if (clickResult !== "clicked") return vehicles;
+
+    await sleep(3000);
+    const totalCarsInfo = await page.evaluate(() => {
+      const match = document.body?.textContent?.match(
+        /(\d+)\s*cars?\s*available/i
+      );
+      return match
+        ? { totalCars: parseInt(match[1]), displayText: match[0] }
+        : null;
+    });
+
     if (totalCarsInfo)
       console.log(`📊 Found ${totalCarsInfo.totalCars} total cars available`);
 
@@ -218,7 +259,14 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
     vehicles.push(...vehicleData);
 
     if (currentUrl !== page.url()) {
-      await navigateBackToAuctions(page, auctionsSelector, currentUrl);
+      try {
+        await page.goBack({ waitUntil: "networkidle2", timeout: 10000 });
+        await sleep(2000);
+        await page.waitForSelector(auctionsSelector, { timeout: 8000 });
+      } catch (error) {
+        await page.reload({ waitUntil: "networkidle2", timeout: 10000 });
+        await page.waitForSelector(auctionsSelector, { timeout: 8000 });
+      }
     }
   } catch (error) {
     // Continue on error
@@ -226,69 +274,10 @@ async function scrapeSingleAuction(page, auctionsSelector, index) {
   return vehicles;
 }
 
-async function getAuctionInfo(page, auctionCard, index) {
-  return await page.evaluate(
-    (card, idx) => {
-      const locationElement =
-        card.querySelector(".auction-location, .location, h3, h4, .title") ||
-        card.querySelector("[data-testid*='location'], [data-testid*='title']");
-      return {
-        location: locationElement?.textContent?.trim() || `Auction ${idx + 1}`,
-        text: card.textContent?.substring(0, 100) || "",
-      };
-    },
-    auctionCard,
-    index
-  );
-}
-
-async function clickViewCarsButton(page, auctionCard, auctionNum) {
-  const result = await page.evaluate((card) => {
-    const buttons = card.querySelectorAll(
-      'hzn-button, button, a, [role="button"]'
-    );
-    for (const btn of buttons) {
-      const btnText = btn.textContent?.trim().toLowerCase();
-      if (btnText.includes("view cars")) {
-        if (
-          btn.disabled ||
-          btn.getAttribute("disabled") !== null ||
-          btn.hasAttribute("disabled") ||
-          btn.getAttribute("aria-disabled") === "true"
-        ) {
-          return "disabled";
-        }
-        try {
-          if (btn.tagName.toLowerCase() === "hzn-button") {
-            const shadowButton = btn.shadowRoot?.querySelector("button");
-            (shadowButton || btn).click();
-          } else {
-            btn.click();
-          }
-          return "clicked";
-        } catch (err) {}
-      }
-    }
-    return "not_found";
-  }, auctionCard);
-  return result === "clicked";
-}
-
-async function getTotalCarsInfo(page) {
-  return await page.evaluate(() => {
-    const match = document.body?.textContent?.match(
-      /(\d+)\s*cars?\s*available/i
-    );
-    return match
-      ? { totalCars: parseInt(match[1]), displayText: match[0] }
-      : null;
-  });
-}
-
 async function loadAllVehicles(page) {
   await page.evaluate(async () => {
     const findScrollContainer = () => {
-      const selectors = [
+      for (const sel of [
         ".vehicle-list-container",
         ".search-results",
         ".vehicles-container",
@@ -296,8 +285,7 @@ async function loadAllVehicles(page) {
         '[role="main"]',
         "main",
         "body",
-      ];
-      for (const sel of selectors) {
+      ]) {
         const el = document.querySelector(sel);
         if (el && el.scrollHeight > el.clientHeight) return el;
       }
@@ -331,14 +319,11 @@ async function loadAllVehicles(page) {
         loadMoreBtn.click();
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } else {
-        if (scrollContainer === document.documentElement) {
-          window.scrollTo(0, document.body.scrollHeight);
-        } else {
-          scrollContainer.scrollTop = scrollContainer.scrollHeight;
-        }
+        scrollContainer === document.documentElement
+          ? window.scrollTo(0, document.body.scrollHeight)
+          : (scrollContainer.scrollTop = scrollContainer.scrollHeight);
         await new Promise((resolve) => setTimeout(resolve, 1500));
       }
-
       if (countVehicles() <= initialCount) break;
     }
     window.scrollTo(0, 0);
@@ -352,7 +337,9 @@ async function extractVehicleData(
   limit = 100
 ) {
   return await page.evaluate(
-    (idx, location, maxVehicles) => {
+    (idx, location, maxVehicles, createVehicleObjectStr) => {
+      eval(createVehicleObjectStr); // Inject the helper function
+
       const vehicles = [];
       const selectors = [
         ".vehicle-list-item",
@@ -405,21 +392,17 @@ async function extractVehicleData(
                 '.vehicle-mileage-aQs6j, .vehicle-mileage, [class*="mileage"]'
               )
               ?.textContent?.trim();
-            const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
 
-            vehicles.push({
-              vin,
-              runNumber: runNumber || "Unknown",
-              year: ymmtParts[0] || "Unknown",
-              make: ymmtParts[1] || "Unknown",
-              model: ymmtParts[2] || "Unknown",
-              trim: ymmtParts.slice(3).join(" ") || "Unknown",
-              mileage: mileage || "Unknown",
-              ymmt: ymmt || "Unknown",
-              auctionLocation: location,
-              auctionIndex: idx + 1,
-              scrapedAt: new Date().toISOString(),
-            });
+            vehicles.push(
+              createVehicleObject(
+                vin,
+                runNumber,
+                ymmt,
+                mileage,
+                location,
+                idx + 1
+              )
+            );
           }
         } catch (err) {}
       }
@@ -427,12 +410,43 @@ async function extractVehicleData(
     },
     auctionIndex,
     auctionLocation,
-    limit
+    limit,
+    createVehicleObject.toString()
   );
 }
 
+function createVehicleObject(
+  vin,
+  runNumber,
+  ymmt,
+  mileage,
+  auctionLocation,
+  auctionIndex,
+  additionalInfo = null,
+  source = null
+) {
+  const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
+  return {
+    vin,
+    runNumber: runNumber || "Unknown",
+    year: ymmtParts[0] || "Unknown",
+    make: ymmtParts[1] || "Unknown",
+    model: ymmtParts[2] || "Unknown",
+    trim: ymmtParts.slice(3).join(" ") || "Unknown",
+    mileage: mileage || "Unknown",
+    ymmt: ymmt || "Unknown",
+    ...(additionalInfo && { additionalInfo }),
+    auctionLocation,
+    auctionIndex,
+    scrapedAt: new Date().toISOString(),
+    ...(source && { source }),
+  };
+}
+
 async function extractMyListVehicles(page) {
-  return await page.evaluate(() => {
+  return await page.evaluate((createVehicleObjectStr) => {
+    eval(createVehicleObjectStr); // Inject the helper function
+
     const vehicles = [];
     const seenVINs = new Set();
     const selectors = [
@@ -491,7 +505,7 @@ async function extractMyListVehicles(page) {
         ) {
           seenVINs.add(vin);
 
-          // Extract other data with simplified selectors
+          // Extract other data
           const ymmt = [
             ".vehicle-heading-irWa8 span",
             ".vehicle-heading-irWa8",
@@ -532,39 +546,24 @@ async function extractMyListVehicles(page) {
           const additionalInfo = element
             .querySelectorAll(".vehicle-info-n4bAH span")[1]
             ?.textContent?.trim();
-          const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
 
-          vehicles.push({
-            vin,
-            runNumber: runNumber || "Unknown",
-            year: ymmtParts[0] || "Unknown",
-            make: ymmtParts[1] || "Unknown",
-            model: ymmtParts[2] || "Unknown",
-            trim: ymmtParts.slice(3).join(" ") || "Unknown",
-            mileage: mileage || "Unknown",
-            ymmt: ymmt || "Unknown",
-            additionalInfo: additionalInfo || "Unknown",
-            auctionLocation: "My List",
-            auctionIndex: 1,
-            scrapedAt: new Date().toISOString(),
-            source: "MyList",
-          });
+          vehicles.push(
+            createVehicleObject(
+              vin,
+              runNumber,
+              ymmt,
+              mileage,
+              "My List",
+              1,
+              additionalInfo,
+              "MyList"
+            )
+          );
         }
       } catch (err) {}
     }
     return vehicles;
-  });
-}
-
-async function navigateBackToAuctions(page, auctionsSelector, originalUrl) {
-  try {
-    await page.goBack({ waitUntil: "networkidle2", timeout: 10000 });
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    await page.waitForSelector(auctionsSelector, { timeout: 8000 });
-  } catch (error) {
-    await page.reload({ waitUntil: "networkidle2", timeout: 10000 });
-    await page.waitForSelector(auctionsSelector, { timeout: 8000 });
-  }
+  }, createVehicleObject.toString());
 }
 
 async function scrapeAuctions() {
@@ -573,7 +572,7 @@ async function scrapeAuctions() {
   try {
     await loginWithRetry(page);
     const auctionsSelector = await navigateToAuctions(page);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await sleep(3000);
 
     const auctionCards = await page.$$(auctionsSelector);
     console.log(`Found ${auctionCards.length} auction cards to scrape`);
@@ -654,8 +653,7 @@ async function scrapeAuctions() {
         );
         break;
       }
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await sleep(2000);
     }
 
     console.log(`✅ Scraped and saved ${vehicles.length} vehicles`);
@@ -671,17 +669,16 @@ async function scrapeAuctions() {
 
 async function navigateToMyList(page) {
   await page.waitForSelector("body", { timeout: 10000 });
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await sleep(3000);
 
   const navigationResult = await page.evaluate(() => {
     // Try href patterns first
-    const hrefSelectors = [
+    for (const selector of [
       'a[href="/mylist"]',
       'a[href*="/mylist"]',
       'a[href*="mylist"]',
       'a[href*="saved"]',
-    ];
-    for (const selector of hrefSelectors) {
+    ]) {
       const elements = document.querySelectorAll(selector);
       if (elements.length > 0) {
         try {
@@ -693,8 +690,10 @@ async function navigateToMyList(page) {
       }
     }
 
-    // Try text content search
-    const allLinks = document.querySelectorAll("a");
+    // Try text content and navigation containers
+    const allLinks = document.querySelectorAll(
+      "a, nav a, [class*='nav'] a, [class*='header'] a, [class*='menu'] a"
+    );
     const textPatterns = [
       /^my\s*list$/i,
       /^mylist$/i,
@@ -704,7 +703,11 @@ async function navigateToMyList(page) {
     for (const link of allLinks) {
       const text = link.textContent?.trim() || "";
       for (const pattern of textPatterns) {
-        if (pattern.test(text)) {
+        if (
+          pattern.test(text) ||
+          text.toLowerCase().includes("my list") ||
+          text.toLowerCase().includes("saved")
+        ) {
           try {
             link.click();
             return { success: true, strategy: "text_pattern" };
@@ -714,26 +717,6 @@ async function navigateToMyList(page) {
         }
       }
     }
-
-    // Try navigation containers
-    const navContainers = document.querySelectorAll(
-      "nav, [class*='nav'], [class*='header'], [class*='menu']"
-    );
-    for (const container of navContainers) {
-      const containerLinks = container.querySelectorAll("a");
-      for (const link of containerLinks) {
-        const text = link.textContent?.trim().toLowerCase() || "";
-        if (text.includes("my list") || text.includes("saved")) {
-          try {
-            link.click();
-            return { success: true, strategy: "nav_container" };
-          } catch (err) {
-            /* continue */
-          }
-        }
-      }
-    }
-
     return { success: false };
   });
 
@@ -790,14 +773,10 @@ async function navigateToMyList(page) {
       throw new Error("Could not navigate to My List using any method");
     }
   }
-
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await sleep(3000);
 }
-
-// Function to scrape vehicles from My List
 async function scrapeMyList(jobId = null) {
   const { browser, page } = await setupBrowser();
-
   const checkCancellation = () => {
     if (jobId && global.jobCancellation && global.jobCancellation[jobId]) {
       throw new Error("Job was cancelled by user request");
@@ -809,10 +788,9 @@ async function scrapeMyList(jobId = null) {
   try {
     checkCancellation();
     await loginWithRetry(page);
-
     checkCancellation();
     await navigateToMyList(page);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await sleep(3000);
 
     const isEmpty = await page.evaluate(() => {
       const pageText = document.body?.textContent?.toLowerCase() || "";
@@ -843,52 +821,51 @@ async function scrapeMyList(jobId = null) {
       saveJSON(filename, vehicles);
       console.log(`📁 My List data saved to: ${filename}`);
 
-      try {
-        const userForAnnotation = {
-          email: "mylist@carmax.com",
-          vins: vehicles
-            .map((v) => v.vin)
-            .filter((vin) => vin && vin !== "Unknown"),
+      // Attempt vAuto annotation
+      const userForAnnotation = {
+        email: "mylist@carmax.com",
+        vins: vehicles
+          .map((v) => v.vin)
+          .filter((vin) => vin && vin !== "Unknown"),
+      };
+
+      if (userForAnnotation.vins.length === 0) {
+        console.log("⚠️ No valid VINs found for vAuto annotation");
+        return {
+          vehicles,
+          filename,
+          summary: {
+            total: vehicles.length,
+            successful: vehicles.length,
+            failed: 0,
+            annotated: 0,
+          },
         };
+      }
 
-        if (userForAnnotation.vins.length === 0) {
-          console.log("⚠️ No valid VINs found for vAuto annotation");
-          return {
-            vehicles,
-            filename,
-            summary: {
-              total: vehicles.length,
-              successful: vehicles.length,
-              failed: 0,
-              annotated: 0,
-            },
-          };
-        }
-
+      try {
         console.log(
           `🔍 Annotating ${userForAnnotation.vins.length} VINs with vAuto...`
         );
         const annotationResults = await annotateUser(userForAnnotation);
-
         const annotatedVehicles = vehicles.map((vehicle) => {
           const annotation = annotationResults.find(
             (result) => result.vin === vehicle.vin && result.success
           );
-          if (annotation && annotation.evaluation) {
-            return {
-              ...vehicle,
-              vautoData: annotation.evaluation,
-              vautoAnnotated: true,
-              vautoTimestamp: new Date().toISOString(),
-            };
-          }
-          return {
-            ...vehicle,
-            vautoAnnotated: false,
-            vautoError:
-              annotationResults.find((r) => r.vin === vehicle.vin)?.error ||
-              "No annotation available",
-          };
+          return annotation && annotation.evaluation
+            ? {
+                ...vehicle,
+                vautoData: annotation.evaluation,
+                vautoAnnotated: true,
+                vautoTimestamp: new Date().toISOString(),
+              }
+            : {
+                ...vehicle,
+                vautoAnnotated: false,
+                vautoError:
+                  annotationResults.find((r) => r.vin === vehicle.vin)?.error ||
+                  "No annotation available",
+              };
         });
 
         saveJSON(filename, annotatedVehicles);
@@ -934,9 +911,10 @@ async function scrapeMyList(jobId = null) {
       };
     }
   } catch (error) {
-    if (error.message && error.message.includes("cancelled")) {
+    const isCancelled = error.message?.includes("cancelled");
+    if (isCancelled) {
       console.log("🛑 My List scraping was cancelled");
-      if (vehicles && vehicles.length > 0) {
+      if (vehicles?.length > 0) {
         const filename = generateDateFilename("mylist_vehicles_cancelled");
         saveJSON(filename, vehicles);
         console.log(
@@ -965,7 +943,6 @@ async function scrapeMyList(jobId = null) {
         };
       }
     }
-
     console.error("❌ Error in scrapeMyList:", error.message);
     throw error;
   } finally {

@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const config = require("./config");
 const { saveJSON, loadJSON, launchPuppeteer } = require("./utils");
+const { authenticator } = require("otplib");
 require("dotenv").config();
 
 /**
@@ -43,13 +44,14 @@ async function loginToVAuto(page) {
   try {
     console.log("🔍 Checking for login completion or 2FA requirement...");
 
-    // Wait for either successful login navigation or 2FA prompt
+    // Wait for either successful login navigation, 2FA prompt, or auth app selection
     await Promise.race([
       page.waitForNavigation({ waitUntil: "networkidle0", timeout: 10000 }),
       page.waitForSelector(
         "input[type='text'][placeholder*='code'], input[name*='code'], input[id*='code'], input[class*='code']",
         { timeout: 10000 }
       ),
+      page.waitForSelector("#button-verify-by-totp", { timeout: 10000 }), // Auth app selection
     ]);
 
     // Check if we're on the main vAuto page (successful login)
@@ -66,13 +68,15 @@ async function loginToVAuto(page) {
       return;
     }
 
-    // Check for 2FA requirement
+    // Check for 2FA requirement (including auth app selection page)
     const has2FA = await page.evaluate(() => {
-      // Look for common 2FA indicators
+      // Look for common 2FA indicators and vAuto specific elements
       const text = document.body?.textContent?.toLowerCase() || "";
       const codeInputs = document.querySelectorAll(
         "input[type='text'], input[type='number']"
       );
+      const authAppButton = document.querySelector("#button-verify-by-totp");
+      const authAppCard = document.querySelector(".factor-card-totp");
 
       return (
         text.includes("verification") ||
@@ -80,30 +84,220 @@ async function loginToVAuto(page) {
         text.includes("code") ||
         text.includes("2fa") ||
         text.includes("two-factor") ||
-        codeInputs.length > 0
+        text.includes("authentication app") ||
+        codeInputs.length > 0 ||
+        authAppButton ||
+        authAppCard
       );
     });
 
     if (has2FA) {
-      console.log("🔐 2FA detected! Please complete authentication manually.");
-      console.log("📱 Steps:");
-      console.log("   1. Check your authenticator app or SMS");
-      console.log("   2. Enter the verification code in the browser");
-      console.log("   3. Click submit/continue");
-      console.log("   4. Wait for the script to continue automatically...");
-      console.log("");
-      console.log(
-        "⏳ Waiting for manual 2FA completion (timeout: 2 minutes)..."
-      );
+      console.log("🔐 2FA detected! Attempting automatic authentication...");
 
-      // Bring browser window to front for easier access
-      await page.bringToFront();
+      const mfaSecret =
+        process.env.VAUTO_MFA_SECRET || process.env.VAUTO_SECRET_KEY_MFA;
+      if (!mfaSecret) {
+        console.log(
+          "❌ No MFA secret found in environment variables (VAUTO_MFA_SECRET or VAUTO_SECRET_KEY_MFA)"
+        );
+        console.log("🔄 Falling back to manual 2FA...");
+        console.log("📱 Steps:");
+        console.log("   1. Check your authenticator app or SMS");
+        console.log("   2. Enter the verification code in the browser");
+        console.log("   3. Click submit/continue");
+        console.log("   4. Wait for the script to continue automatically...");
+        console.log("");
+        console.log(
+          "⏳ Waiting for manual 2FA completion (timeout: 2 minutes)..."
+        );
 
-      // Wait for navigation after 2FA completion (with longer timeout)
-      await page.waitForNavigation({
-        waitUntil: "networkidle0",
-        timeout: 120000, // 2 minutes for manual input
-      });
+        // Bring browser window to front for easier access
+        await page.bringToFront();
+
+        // Wait for navigation after 2FA completion (with longer timeout)
+        await page.waitForNavigation({
+          waitUntil: "networkidle0",
+          timeout: 120000, // 2 minutes for manual input
+        });
+      } else {
+        // Generate MFA code automatically
+        try {
+          const mfaCode = authenticator.generate(mfaSecret);
+          console.log(`🔑 Generated MFA Code: ${mfaCode}`);
+
+          // Step 1: Check if we need to select Authentication App first
+          let needsToSelectAuthApp = false;
+          try {
+            // Look for the authentication app selection button or card
+            const authAppSelectors = [
+              "#button-verify-by-totp",
+              ".factor-card-totp button",
+              "button:contains('Select')",
+              ".btn:contains('Select')",
+            ];
+
+            for (const selector of authAppSelectors) {
+              try {
+                await page.waitForSelector(selector, { timeout: 2000 });
+                const element = await page.$(selector);
+                if (element) {
+                  needsToSelectAuthApp = true;
+                  console.log(
+                    `📱 Found Authentication App selection with selector: ${selector}`
+                  );
+
+                  // Click the authentication app selection
+                  await page.click(selector);
+                  console.log("✅ Selected Authentication App method");
+                  break;
+                }
+              } catch (e) {
+                // Continue to next selector
+              }
+            }
+          } catch (e) {
+            // No auth app selection needed, proceed to code input
+          }
+
+          if (needsToSelectAuthApp) {
+            // Wait for the code input form to appear after selection
+            await page.waitForSelector("#input-verification-code", {
+              timeout: 10000,
+            });
+            console.log("📱 Code input form appeared");
+          }
+
+          // Step 2: Find the MFA input field (specific vAuto selectors first, then fallbacks)
+          const mfaInputSelectors = [
+            "#input-verification-code", // vAuto specific
+            "input[name='input-verification-code']", // vAuto specific
+            "input[placeholder*='one time code']", // vAuto specific
+            "input[type='text'][placeholder*='code']",
+            "input[name*='code']",
+            "input[id*='code']",
+            "input[class*='code']",
+            "input[type='number']",
+            "input[placeholder*='verification']",
+            "input[placeholder*='authenticator']",
+          ];
+
+          let mfaInput = null;
+          let foundSelector = null;
+          for (const selector of mfaInputSelectors) {
+            try {
+              await page.waitForSelector(selector, { timeout: 3000 });
+              mfaInput = await page.$(selector);
+              if (mfaInput) {
+                foundSelector = selector;
+                console.log(
+                  `📱 Found MFA input field with selector: ${selector}`
+                );
+                break;
+              }
+            } catch (e) {
+              // Continue to next selector
+            }
+          }
+
+          if (mfaInput) {
+            // Clear and enter the MFA code
+            await mfaInput.click({ clickCount: 3 }); // Select all
+            await page.type(foundSelector, mfaCode, { delay: 100 });
+            console.log("✅ MFA code entered successfully");
+
+            // Step 3: Submit the code (vAuto specific selectors first, then fallbacks)
+            const submitSelectors = [
+              "#button-account-recovery-submit", // vAuto specific
+              "button[type='submit']",
+              "input[type='submit']",
+              "button:contains('Verify')",
+              "button:contains('Submit')",
+              "button:contains('Continue')",
+              "#submit-mfa",
+              "#signIn",
+            ];
+
+            let submitted = false;
+            for (const selector of submitSelectors) {
+              try {
+                const submitBtn = await page.$(selector);
+                if (submitBtn) {
+                  // Check if button is enabled (vAuto disables it until code is entered)
+                  const isDisabled = await page.evaluate(
+                    (btn) => btn.disabled,
+                    submitBtn
+                  );
+                  if (!isDisabled) {
+                    await submitBtn.click();
+                    console.log(
+                      `🚀 Clicked submit button with selector: ${selector}`
+                    );
+                    submitted = true;
+                    break;
+                  } else {
+                    console.log(
+                      `⏳ Submit button found but disabled, waiting...`
+                    );
+                    // Wait a moment for the button to become enabled
+                    await page.waitForFunction(
+                      (sel) => {
+                        const btn = document.querySelector(sel);
+                        return btn && !btn.disabled;
+                      },
+                      { timeout: 5000 },
+                      selector
+                    );
+                    await submitBtn.click();
+                    console.log(
+                      `🚀 Clicked enabled submit button with selector: ${selector}`
+                    );
+                    submitted = true;
+                    break;
+                  }
+                }
+              } catch (e) {
+                // Continue to next selector
+              }
+            }
+
+            if (!submitted) {
+              // Try pressing Enter as fallback
+              await page.keyboard.press("Enter");
+              console.log("🚀 Pressed Enter to submit MFA code");
+            }
+
+            // Wait for navigation after MFA submission
+            await page.waitForNavigation({
+              waitUntil: "networkidle0",
+              timeout: 30000,
+            });
+          } else {
+            console.log("❌ Could not find MFA input field");
+            console.log("🔄 Falling back to manual 2FA...");
+
+            // Bring browser window to front for manual input
+            await page.bringToFront();
+
+            // Wait for navigation after manual completion
+            await page.waitForNavigation({
+              waitUntil: "networkidle0",
+              timeout: 120000,
+            });
+          }
+        } catch (error) {
+          console.log(`❌ Error during automatic MFA: ${error.message}`);
+          console.log("🔄 Falling back to manual 2FA...");
+
+          // Bring browser window to front for manual input
+          await page.bringToFront();
+
+          // Wait for navigation after manual completion
+          await page.waitForNavigation({
+            waitUntil: "networkidle0",
+            timeout: 120000,
+          });
+        }
+      }
 
       console.log("✅ 2FA completed successfully!");
     }
