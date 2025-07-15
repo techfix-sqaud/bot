@@ -11,10 +11,10 @@ class CredentialHelper {
    */
   async setupUserCredentials(userId) {
     try {
-      const credentials = await auth.getUserCredentials(userId);
-      if (!credentials) {
-        throw new Error("User credentials not found");
-      }
+      // const credentials = await auth.getUserCredentials(userId);
+      // if (!credentials) {
+      //   throw new Error("User credentials not found");
+      // }
 
       // Note: In a production system, you would decrypt these passwords here
       // For now, we'll store them as hashed in the database but need to handle them differently
