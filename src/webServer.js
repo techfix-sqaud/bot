@@ -77,9 +77,9 @@ class WebServer {
     this.setupAuthRoutes();
 
     // Protected dashboard route
-    this.app.get("/", auth.requireAuth, async (req, res) => {
-      const user = await auth.getUserById(req.user.id);
-      res.render("dashboard", { user });
+    this.app.get("/", async (req, res) => {
+      // const user = await auth.getUserById(req.user.id);
+      res.render("dashboard");
     });
 
     // Admin dashboard (public or add auth as needed)
@@ -89,7 +89,7 @@ class WebServer {
     });
 
     // API Routes - all protected
-    this.app.get("/api/status", auth.requireAuth, (req, res) => {
+    this.app.get("/api/status", (req, res) => {
       const vehicles = loadJSON("./data/vehicles.json");
       const runningJobs = Array.from(this.runningJobs.keys());
 
@@ -100,12 +100,12 @@ class WebServer {
       });
     });
 
-    this.app.get("/api/vehicles", auth.requireAuth, (req, res) => {
+    this.app.get("/api/vehicles", (req, res) => {
       const vehicles = loadJSON("./data/vehicles.json");
       res.json(vehicles);
     });
 
-    this.app.get("/api/vehicles/export", auth.requireAuth, (req, res) => {
+    this.app.get("/api/vehicles/export", (req, res) => {
       const vehicles = loadJSON("./data/vehicles.json");
       const filename = `vehicles_export_${
         new Date().toISOString().split("T")[0]
@@ -119,7 +119,7 @@ class WebServer {
       res.send(JSON.stringify(vehicles, null, 2));
     });
 
-    this.app.post("/api/scrape/carmax", auth.requireAuth, async (req, res) => {
+    this.app.post("/api/scrape/carmax", async (req, res) => {
       const { mode } = req.body; // 'auctions' or 'mylist'
 
       if (this.runningJobs.has("carmax")) {
@@ -134,10 +134,10 @@ class WebServer {
       res.json({ jobId, message: `Starting CarMax scraping in ${mode} mode` });
 
       // Start the scraping process with user credentials
-      this.startCarMaxScraping(mode, jobId, req.user.id);
+      this.startCarMaxScraping(mode, jobId);
     });
 
-    this.app.post("/api/scrape/vauto", auth.requireAuth, async (req, res) => {
+    this.app.post("/api/scrape/vauto", async (req, res) => {
       if (this.runningJobs.has("vauto")) {
         return res
           .status(400)
@@ -157,34 +157,30 @@ class WebServer {
       res.json({ jobId, message: "Starting vAuto enrichment" });
 
       // Start the vAuto enrichment with user credentials
-      this.startVAutoEnrichment(jobId, req.user.id);
+      this.startVAutoEnrichment(jobId);
     });
 
-    this.app.post(
-      "/api/scrape/complete",
-      auth.requireAuth,
-      async (req, res) => {
-        if (this.runningJobs.has("complete")) {
-          return res
-            .status(400)
-            .json({ error: "Complete workflow already in progress" });
-        }
-
-        const { mode } = req.body; // 'auctions' or 'mylist'
-        const jobId = `complete_${Date.now()}`;
-        this.runningJobs.set("complete", jobId);
-
-        res.json({
-          jobId,
-          message: `Starting complete workflow in ${mode} mode`,
-        });
-
-        // Start the complete workflow with user credentials
-        this.startCompleteWorkflow(mode, jobId, req.user.id);
+    this.app.post("/api/scrape/complete", async (req, res) => {
+      if (this.runningJobs.has("complete")) {
+        return res
+          .status(400)
+          .json({ error: "Complete workflow already in progress" });
       }
-    );
 
-    this.app.post("/api/cancel/:jobType", auth.requireAuth, (req, res) => {
+      const { mode } = req.body; // 'auctions' or 'mylist'
+      const jobId = `complete_${Date.now()}`;
+      this.runningJobs.set("complete", jobId);
+
+      res.json({
+        jobId,
+        message: `Starting complete workflow in ${mode} mode`,
+      });
+
+      // Start the complete workflow with user credentials
+      this.startCompleteWorkflow(mode, jobId);
+    });
+
+    this.app.post("/api/cancel/:jobType", (req, res) => {
       const { jobType } = req.params;
 
       if (this.runningJobs.has(jobType)) {
@@ -325,15 +321,9 @@ class WebServer {
     try {
       this.io.emit("jobStarted", { type: "carmax", mode, jobId });
 
-      // Get user credentials
-      const credentials = await auth.getUserCredentials(userId);
-      if (!credentials) {
-        throw new Error("User credentials not found");
-      }
-
-      // Set environment variables for the scraping process
-      process.env.CARMAX_EMAIL = credentials.carmaxEmail;
-      process.env.CARMAX_PASSWORD = credentials.carmaxPassword;
+      // Set environment variables from .env or process.env directly
+      // (No user credentials lookup)
+      // process.env.CARMAX_EMAIL and process.env.CARMAX_PASSWORD should already be set
 
       // Override console.log to emit to websocket
       const originalLog = console.log;
@@ -367,16 +357,9 @@ class WebServer {
     try {
       this.io.emit("jobStarted", { type: "vauto", jobId });
 
-      // Get user credentials
-      const credentials = await auth.getUserCredentials(userId);
-      if (!credentials) {
-        throw new Error("User credentials not found");
-      }
-
-      // Set environment variables for the vAuto process
-      process.env.VAUTO_USERNAME = credentials.vautoUsername;
-      process.env.VAUTO_PASSWORD = credentials.vautoPassword;
-      process.env.VAUTO_SECRET_KEY = credentials.vautoSecretKey;
+      // Set environment variables from .env or process.env directly
+      // (No user credentials lookup)
+      // process.env.VAUTO_USERNAME, VAUTO_PASSWORD, VAUTO_SECRET_KEY should already be set
 
       // Import the vAuto enricher
       const enricher = require("./carmaxVautoScraper");
@@ -403,21 +386,13 @@ class WebServer {
     }
   }
 
-  async startCompleteWorkflow(mode, jobId, userId) {
+  async startCompleteWorkflow(mode, jobId) {
     try {
       this.io.emit("jobStarted", { type: "complete", mode, jobId });
 
-      // Get user credentials and set environment variables
-      const credentials = await auth.getUserCredentials(userId);
-      if (!credentials) {
-        throw new Error("User credentials not found");
-      }
-
-      process.env.CARMAX_EMAIL = credentials.carmaxEmail;
-      process.env.CARMAX_PASSWORD = credentials.carmaxPassword;
-      process.env.VAUTO_USERNAME = credentials.vautoUsername;
-      process.env.VAUTO_PASSWORD = credentials.vautoPassword;
-      process.env.VAUTO_SECRET_KEY = credentials.vautoSecretKey;
+      // Set environment variables from .env or process.env directly
+      // (No user credentials lookup)
+      // process.env.CARMAX_EMAIL, CARMAX_PASSWORD, VAUTO_USERNAME, VAUTO_PASSWORD, VAUTO_SECRET_KEY should already be set
 
       // First run CarMax scraping
       await this.startCarMaxScrapingInternal(mode);
