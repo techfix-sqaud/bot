@@ -415,7 +415,6 @@ async function extractVehicleData(
   );
 }
 
-<<<<<<< Updated upstream
 function createVehicleObject(
   vin,
   runNumber,
@@ -458,48 +457,6 @@ async function extractMyListVehicles(page) {
       "tbody tr",
       ".MuiTableBody-root tr",
     ];
-=======
-async function extractTotalVehicleCount(page) {
-    const totalCountText = await page.$eval('.search-bar-title-STpuhW span', el => el.innerText);
-    const match = totalCountText.match(/\d+/);
-    return match ? parseInt(match[0], 10) : 0;
-}
-// Helper function to extract vehicle data specifically for My List
-async function extractMyListVehicleData(page, limit = 1000) {
-  const totalVehiclesExpected = await extractTotalVehicleCount(page);
-   console.log(totalVehiclesExpected);
-   let allVehicles = [];
-    let lastCount = 0;
-    let retries = 0;
-    const seenVINs = new Set();
-    let scrollTries = 0;
-    while (seenVINs.size < totalVehiclesExpected && scrollTries < 50) {
-  await page.evaluate(() => window.scrollBy(0, 300));
-    await new Promise(resolve => setTimeout(resolve, 1500));
-   const newData = await page.evaluate(() => {
-      const vehicles = [];
-      const seenVINs = new Set();
-
-      const selectors = [
-        ".vehicle-Tixca", // Primary selector based on the provided HTML
-        ".vehicle-list-item",
-        ".saved-vehicle-item",
-        ".mylist-vehicle",
-        '[class*="vehicle-list"]',
-        '[class*="vehicle-row"]',
-        '[class*="vehicle-card"]',
-        '[class*="vehicle"]',
-        '[class*="saved-vehicle"]',
-        '[class*="mylist"]',
-        "tbody tr",
-        ".MuiTableBody-root tr",
-        '[role="row"]',
-        '[data-testid*="vehicle"]',
-        '[data-testid*="saved"]',
-        ".vehicle-item",
-        ".list-item",
-      ];
->>>>>>> Stashed changes
 
     let vehicleElements = [];
     for (const selector of selectors) {
@@ -507,13 +464,6 @@ async function extractMyListVehicleData(page, limit = 1000) {
       if (elements.length > vehicleElements.length) vehicleElements = elements;
     }
 
-<<<<<<< Updated upstream
-=======
-    console.log(
-      `🔍 Found ${vehicleElements.length} vehicles in My List using "${bestSelector}"`
-    );
-
->>>>>>> Stashed changes
     for (let i = 0; i < vehicleElements.length; i++) {
       try {
         const element = vehicleElements[i];
@@ -529,11 +479,7 @@ async function extractMyListVehicleData(page, limit = 1000) {
         ];
         for (const vinSelector of vinSelectors) {
           const vinElement = element.querySelector(vinSelector);
-<<<<<<< Updated upstream
           if (vinElement?.textContent) {
-=======
-          if (vinElement && vinElement.textContent) {
->>>>>>> Stashed changes
             const vinText = vinElement.textContent
               .trim()
               .replace(/[^A-HJ-NPR-Z0-9]/gi, "");
@@ -546,19 +492,9 @@ async function extractMyListVehicleData(page, limit = 1000) {
 
         // Fallback VIN extraction
         if (!vin || vin.length !== 17) {
-<<<<<<< Updated upstream
           const vinMatches =
             element.textContent?.match(/[A-HJ-NPR-Z0-9]{17}/gi);
           if (vinMatches?.length > 0) vin = vinMatches[0];
-=======
-          const textContent = element.textContent || "";
-          const vinMatches = textContent.match(/[A-HJ-NPR-Z0-9]{17}/gi);
-          if (vinMatches && vinMatches.length > 0) {
-            console.log(`🔍 Fallback VIN extraction found: ${vinMatches[0]}`);
-            // Use the
-            vin = vinMatches[0];
-          }
->>>>>>> Stashed changes
         }
 
         if (
@@ -569,16 +505,9 @@ async function extractMyListVehicleData(page, limit = 1000) {
         ) {
           seenVINs.add(vin);
 
-<<<<<<< Updated upstream
           // Extract other data
           const ymmt = [
             ".vehicle-heading-irWa8 span",
-=======
-          // Extract vehicle heading (YMMT) - based on HTML: .vehicle-heading-irWa8 span
-          let ymmt = null;
-          const ymmtSelectors = [
-            ".vehicle-heading-irWa8 span", // Specific selector from provided HTML
->>>>>>> Stashed changes
             ".vehicle-heading-irWa8",
             ".vehicle-ymmt-I4Jge",
             ".vehicle-ymmt",
@@ -587,23 +516,8 @@ async function extractMyListVehicleData(page, limit = 1000) {
             .map((sel) => element.querySelector(sel)?.textContent?.trim())
             .find((text) => text && text.length > 5);
 
-<<<<<<< Updated upstream
           const runNumber = [
             ".vehicle-run-number-TOWny",
-=======
-          for (const ymmtSelector of ymmtSelectors) {
-            const ymmtElement = element.querySelector(ymmtSelector);
-            if (ymmtElement && ymmtElement.textContent) {
-              ymmt = ymmtElement.textContent.trim();
-              if (ymmt && ymmt.length > 5) break; // Basic validation
-            }
-          }
-
-          // Extract run number - based on HTML: .vehicle-run-number-TOWny
-          let runNumber = null;
-          const runNumberSelectors = [
-            ".vehicle-run-number-TOWny", // Specific selector from provided HTML
->>>>>>> Stashed changes
             ".vehicle-run-number-yx1uJ",
             ".vehicle-run-number",
             '[class*="run-number"]',
@@ -611,25 +525,12 @@ async function extractMyListVehicleData(page, limit = 1000) {
             .map((sel) => element.querySelector(sel)?.textContent?.trim())
             .find((text) => text);
 
-<<<<<<< Updated upstream
-=======
-          for (const runSelector of runNumberSelectors) {
-            const runElement = element.querySelector(runSelector);
-            if (runElement && runElement.textContent) {
-              runNumber = runElement.textContent.trim();
-              if (runNumber) break;
-            }
-          }
-
-          // Extract mileage from vehicle-info-n4bAH area
->>>>>>> Stashed changes
           let mileage = null;
           for (const sel of [
             ".vehicle-info-n4bAH span",
             ".vehicle-mileage-aQs6j",
             ".vehicle-mileage",
             '[class*="mileage"]',
-<<<<<<< Updated upstream
           ]) {
             const elements = element.querySelectorAll(sel);
             for (const el of elements) {
@@ -637,22 +538,6 @@ async function extractMyListVehicleData(page, limit = 1000) {
               if (text && (text.includes("mi") || text.includes("mile"))) {
                 mileage = text;
                 break;
-=======
-            '[class*="miles"]',
-            '[data-testid*="mileage"]',
-            '[data-testid*="miles"]',
-          ];
-
-          for (const mileageSelector of mileageSelectors) {
-            const mileageElements = element.querySelectorAll(mileageSelector);
-            for (const mileageElement of mileageElements) {
-              if (mileageElement && mileageElement.textContent) {
-                const text = mileageElement.textContent.trim();
-                if (text && (text.includes("mi") || text.includes("mile"))) {
-                  mileage = text;
-                  break;
-                }
->>>>>>> Stashed changes
               }
             }
             if (mileage) break;
@@ -674,80 +559,11 @@ async function extractMyListVehicleData(page, limit = 1000) {
               "MyList"
             )
           );
-<<<<<<< Updated upstream
-=======
-          if (
-            additionalInfoElements.length > 1 &&
-            additionalInfoElements[1] &&
-            additionalInfoElements[1].textContent
-          ) {
-            // Usually the second span contains transmission and engine info
-            additionalInfo = additionalInfoElements[1].textContent.trim();
-          }
-
-          // Parse YMMT
-          const ymmtParts = ymmt ? ymmt.split(/\s+/) : [];
-          const year = ymmtParts[0] || "Unknown";
-          const make = ymmtParts[1] || "Unknown";
-          const model = ymmtParts[2] || "Unknown";
-          const trim = ymmtParts.slice(3).join(" ") || "Unknown";
-          console.log("amount of vehicles", vehicles.length);
-          vehicles.push({
-            vin,
-            runNumber: runNumber || "Unknown",
-            year,
-            make,
-            model,
-            trim,
-            mileage: mileage || "Unknown",
-            ymmt: ymmt || "Unknown",
-            additionalInfo: additionalInfo || "Unknown", // Engine, transmission info
-            auctionLocation: "My List",
-            auctionIndex: 1,
-            scrapedAt: new Date().toISOString(),
-            source: "MyList", // Add source identifier
-          });
-
-          // Progress logging
-          if (vehicles.length % 5 === 0 || i === vehicleElements.length - 1) {
-            const progress = (((i + 1) / vehicleElements.length) * 100).toFixed(
-              1
-            );
-            console.log(
-              `✅ Extracted ${vehicles.length} vehicles from My List... (${progress}% complete)`
-            );
-          }
->>>>>>> Stashed changes
         }
       } catch (err) {}
     }
     return vehicles;
-<<<<<<< Updated upstream
   }, createVehicleObject.toString());
-=======
-  // });
-  });
-
-  let newAdded = 0;
-    for (const v of newData) {
-      if (!seenVINs.has(v.vin)) {
-        seenVINs.add(v.vin);
-        allVehicles.push(v);
-        newAdded++;
-      }
-    }
-
-    if (newAdded === 0) {
-      scrollTries++;
-    } else {
-      scrollTries = 0;
-    }
-
-    console.log(`🔄 Total collected: ${allVehicles.length} / ${totalVehiclesExpected}`);
-
-}
-return allVehicles;
->>>>>>> Stashed changes
 }
 
 async function scrapeAuctions() {
@@ -775,287 +591,7 @@ async function scrapeAuctions() {
       let currentAuctionsSelector = auctionsSelector;
       let auctionProcessed = false;
 
-<<<<<<< Updated upstream
       for (let selectorRetry = 0; selectorRetry < 3; selectorRetry++) {
-=======
-    // First, let's debug what's actually on the page
-    console.log("🔍 Debugging page content...");
-    const debugInfo = await page.evaluate(() => {
-      const currentUrl = window.location.href;
-      const pageTitle = document.title;
-
-      // Look for all links on the page
-      const allLinks = Array.from(document.querySelectorAll("a"));
-      const linkInfo = allLinks.slice(0, 20).map((link) => ({
-        href: link.href,
-        text: link.textContent?.trim().substring(0, 50),
-        className:
-          typeof link.className === "string"
-            ? link.className
-            : link.className?.toString() || "",
-      }));
-
-      // Look for any element containing "my list", "mylist", "saved", etc.
-      const potentialMyListElements = Array.from(document.querySelectorAll("*"))
-        .filter((el) => {
-          const text = el.textContent?.toLowerCase() || "";
-          const href = el.href?.toLowerCase() || "";
-          // Safely get className as string
-          const className = (
-            typeof el.className === "string"
-              ? el.className
-              : el.className?.toString() || ""
-          ).toLowerCase();
-          return (
-            text.includes("my list") ||
-            text.includes("mylist") ||
-            text.includes("mylist") ||
-            text.includes("favorites") ||
-            href.includes("mylist") ||
-            href.includes("mylist") ||
-            className.includes("mylist") ||
-            className.includes("mylist")
-          );
-        })
-        .slice(0, 10)
-        .map((el) => ({
-          tagName: el.tagName,
-          text: el.textContent?.trim().substring(0, 100),
-          href: el.href || "",
-          className:
-            typeof el.className === "string"
-              ? el.className
-              : el.className?.toString() || "",
-        }));
-
-      return {
-        currentUrl,
-        pageTitle,
-        totalLinks: allLinks.length,
-        linkInfo,
-        potentialMyListElements,
-      };
-    });
-
-    console.log("📊 Page Debug Info:", {
-      url: debugInfo.currentUrl,
-      title: debugInfo.pageTitle,
-      totalLinks: debugInfo.totalLinks,
-    });
-
-    console.log("🔗 Available links (first 20):");
-    debugInfo.linkInfo.forEach((link, index) => {
-      console.log(`  ${index + 1}. "${link.text}" -> ${link.href}`);
-    });
-
-    console.log("🎯 Potential My List elements:");
-    debugInfo.potentialMyListElements.forEach((el, index) => {
-      console.log(
-        `  ${index + 1}. ${el.tagName}: "${el.text}" (href: ${el.href})`
-      );
-    });
-
-    // Find and click the "My List" link using enhanced logic
-    const navigationResult = await page.evaluate(() => {
-      const results = [];
-
-      // Strategy 1: Try exact href patterns
-      const hrefSelectors = [
-        'a[href="/mylist"]',
-        'a[href*="/mylist"]',
-        'a[href*="mylist"]',
-        'a[href*="favorites"]',
-        'a[href*="mylist"]',
-        'a[href*="wishlist"]',
-        'a[href*="saved-vehicles"]',
-      ];
-
-      for (const selector of hrefSelectors) {
-        const elements = document.querySelectorAll(selector);
-        if (elements.length > 0) {
-          results.push({
-            strategy: "href_pattern",
-            selector,
-            found: elements.length,
-            elements: Array.from(elements).map((el) => ({
-              href: el.href,
-              text: el.textContent?.trim(),
-            })),
-          });
-
-          // Try clicking the first one
-          try {
-            elements[0].click();
-            return {
-              success: true,
-              strategy: "href_pattern",
-              selector,
-              clickedElement: {
-                href: elements[0].href,
-                text: elements[0].textContent?.trim(),
-              },
-            };
-          } catch (err) {
-            results.push({
-              strategy: "href_pattern",
-              selector,
-              error: "Click failed: " + err.message,
-            });
-          }
-        }
-      }
-
-      // Strategy 2: Look for text content in all links
-      const allLinks = document.querySelectorAll("a");
-      const textPatterns = [
-        /^my\s*list$/i,
-        /^mylist$/i,
-        /^saved$/i,
-        /^favorites$/i,
-        /^wishlist$/i,
-        /saved\s*vehicles/i,
-        /my\s*saved/i,
-      ];
-
-      for (const link of allLinks) {
-        const text = link.textContent?.trim() || "";
-        for (const pattern of textPatterns) {
-          if (pattern.test(text)) {
-            results.push({
-              strategy: "text_pattern",
-              pattern: pattern.toString(),
-              found: text,
-              href: link.href,
-            });
-
-            try {
-              link.click();
-              return {
-                success: true,
-                strategy: "text_pattern",
-                pattern: pattern.toString(),
-                clickedElement: {
-                  href: link.href,
-                  text: text,
-                },
-              };
-            } catch (err) {
-              results.push({
-                strategy: "text_pattern",
-                error: "Click failed: " + err.message,
-              });
-            }
-          }
-        }
-      }
-
-      // Strategy 3: Look in navigation containers
-      const navContainers = document.querySelectorAll(
-        [
-          ".sub-header-container-lZOAt",
-          ".MuiContainer-root",
-          "nav",
-          '[class*="nav"]',
-          '[class*="header"]',
-          '[class*="menu"]',
-          '[role="navigation"]',
-        ].join(", ")
-      );
-
-      for (const container of navContainers) {
-        const containerLinks = container.querySelectorAll("a");
-        for (const link of containerLinks) {
-          const text = link.textContent?.trim().toLowerCase() || "";
-          if (
-            text.includes("my list") ||
-            text.includes("mylist") ||
-            text.includes("mylist")
-          ) {
-            results.push({
-              strategy: "nav_container",
-              container:
-                typeof container.className === "string"
-                  ? container.className
-                  : container.className?.toString() || "",
-              found: text,
-              href: link.href,
-            });
-
-            try {
-              link.click();
-              return {
-                success: true,
-                strategy: "nav_container",
-                clickedElement: {
-                  href: link.href,
-                  text: text,
-                },
-              };
-            } catch (err) {
-              results.push({
-                strategy: "nav_container",
-                error: "Click failed: " + err.message,
-              });
-            }
-          }
-        }
-      }
-
-      return {
-        success: false,
-        attempts: results,
-      };
-    });
-
-    console.log("🎯 Navigation attempt result:", navigationResult);
-
-    if (navigationResult.success) {
-      console.log(
-        `✅ Successfully clicked My List using ${navigationResult.strategy}`
-      );
-      console.log(
-        `   Clicked element: "${navigationResult.clickedElement.text}" -> ${navigationResult.clickedElement.href}`
-      );
-
-      // Wait for navigation to complete
-      try {
-        await page.waitForNavigation({
-          waitUntil: "networkidle2",
-          timeout: 15000,
-        });
-        console.log("🔄 Navigation to My List completed");
-      } catch (navError) {
-        console.log(
-          "⚠️ Navigation wait failed, but click may have worked. Continuing..."
-        );
-      }
-    } else {
-      console.log(
-        '❌ "My List" link not found in any strategy, trying direct URLs...'
-      );
-      console.log("🔍 Attempted strategies:", navigationResult.attempts);
-
-      // Get current URL for proper navigation
-      const currentUrl = page.url();
-      const baseUrl = new URL(currentUrl).origin;
-
-      // Try multiple possible My List URLs
-      const possibleUrls = [
-        `${baseUrl}/mylist`,
-        `${baseUrl}/mylist`,
-        `${baseUrl}/favorites`,
-        `${baseUrl}/saved-vehicles`,
-        `${baseUrl}/wishlist`,
-        `${baseUrl}/mylist.html`,
-        `${baseUrl}/user/mylist`,
-        `${baseUrl}/account/mylist`,
-        `${baseUrl}/dashboard/mylist`,
-      ];
-
-      let directNavSuccess = false;
-
-      for (const testUrl of possibleUrls) {
->>>>>>> Stashed changes
         try {
           await page.waitForSelector(currentAuctionsSelector, {
             timeout: 8000,
@@ -1065,31 +601,11 @@ async function scrapeAuctions() {
             (els) => els.length
           );
 
-<<<<<<< Updated upstream
           if (currentCardCount > i) {
             const vinBatch = await scrapeSingleAuction(
               page,
               currentAuctionsSelector,
               i
-=======
-          // Check if we successfully loaded a My List page
-          const isMyListPage = await page.evaluate(() => {
-            const pageText = document.body.textContent.toLowerCase();
-            const url = window.location.href.toLowerCase();
-            const title = document.title.toLowerCase();
-
-            return (
-              url.includes("/mylist") ||
-              url.includes("/mylist") ||
-              url.includes("/favorites") ||
-              pageText.includes("my list") ||
-              pageText.includes("saved vehicles") ||
-              pageText.includes("favorites") ||
-              pageText.includes("wishlist") ||
-              title.includes("my list") ||
-              title.includes("my list") ||
-              title.includes("favorites")
->>>>>>> Stashed changes
             );
             vehicles.push(...vinBatch);
             auctionProcessed = true;
@@ -1270,20 +786,9 @@ async function scrapeMyList(jobId = null) {
   let vehicles = [];
 
   try {
-<<<<<<< Updated upstream
     checkCancellation();
     await loginWithRetry(page);
     checkCancellation();
-=======
-    checkCancellation(); // Check before starting
-
-    await login(page);
-    console.log("✅ Login completed");
-    console.log("✅ Login completed2");
-
-    checkCancellation(); // Check after login
-
->>>>>>> Stashed changes
     await navigateToMyList(page);
     await sleep(3000);
 
