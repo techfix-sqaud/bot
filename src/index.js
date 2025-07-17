@@ -40,9 +40,9 @@ if (require.main === module) {
   console.log("");
   console.log("Available CLI commands:");
   console.log(
-    "  npm run scrape           # Complete workflow (My List + vAuto)"
+    "  npm run scrape           # Complete workflow (mylist + vauto)"
   );
   console.log("  npm run mylist           # Scrape My List only");
+  console.log("  npm run auctions         # Scrape All Auctions");
   console.log("  npm run vauto            # vAuto enrichment only");
-  console.log("  npm run status           # Show current status");
 }
