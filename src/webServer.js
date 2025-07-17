@@ -120,21 +120,19 @@ class WebServer {
     });
 
     this.app.post("/api/scrape/carmax", async (req, res) => {
-      const { mode } = req.body; // 'auctions' or 'mylist'
-
       if (this.runningJobs.has("carmax")) {
         return res
           .status(400)
-          .json({ error: "CarMax scraping already in progress" });
+          .json({ error: "CarMax My List scraping already in progress" });
       }
 
       const jobId = `carmax_${Date.now()}`;
       this.runningJobs.set("carmax", jobId);
 
-      res.json({ jobId, message: `Starting CarMax scraping in ${mode} mode` });
+      res.json({ jobId, message: "Starting CarMax My List scraping" });
 
-      // Start the scraping process with user credentials
-      this.startCarMaxScraping(mode, jobId);
+      // Start the scraping process
+      this.startCarMaxScraping(jobId);
     });
 
     this.app.post("/api/scrape/vauto", async (req, res) => {
@@ -167,17 +165,16 @@ class WebServer {
           .json({ error: "Complete workflow already in progress" });
       }
 
-      const { mode } = req.body; // 'auctions' or 'mylist'
       const jobId = `complete_${Date.now()}`;
       this.runningJobs.set("complete", jobId);
 
       res.json({
         jobId,
-        message: `Starting complete workflow in ${mode} mode`,
+        message: "Starting complete workflow (My List + vAuto enrichment)",
       });
 
-      // Start the complete workflow with user credentials
-      this.startCompleteWorkflow(mode, jobId);
+      // Start the complete workflow
+      this.startCompleteWorkflow(jobId);
     });
 
     this.app.post("/api/cancel/:jobType", (req, res) => {
@@ -317,13 +314,9 @@ class WebServer {
     });
   }
 
-  async startCarMaxScraping(mode, jobId, userId) {
+  async startCarMaxScraping(jobId) {
     try {
-      this.io.emit("jobStarted", { type: "carmax", mode, jobId });
-
-      // Set environment variables from .env or process.env directly
-      // (No user credentials lookup)
-      // process.env.CARMAX_EMAIL and process.env.CARMAX_PASSWORD should already be set
+      this.io.emit("jobStarted", { type: "carmax", jobId });
 
       // Override console.log to emit to websocket
       const originalLog = console.log;
@@ -333,13 +326,9 @@ class WebServer {
         originalLog(...args);
       };
 
-      // Start scraping based on mode
-      if (mode === "mylist") {
-        await this.scrapeMyList();
-      } else {
-        const scraper = require("./carmaxScraper");
-        await scraper.scrapeAuctions();
-      }
+      // Use the new clean scraper
+      const { scrapeMyList } = require("./scrapers/carmax-mylist-scraper");
+      await scrapeMyList(jobId);
 
       // Restore console.log
       console.log = originalLog;
@@ -353,16 +342,9 @@ class WebServer {
     }
   }
 
-  async startVAutoEnrichment(jobId, userId) {
+  async startVAutoEnrichment(jobId) {
     try {
       this.io.emit("jobStarted", { type: "vauto", jobId });
-
-      // Set environment variables from .env or process.env directly
-      // (No user credentials lookup)
-      // process.env.VAUTO_USERNAME, VAUTO_PASSWORD, VAUTO_SECRET_KEY should already be set
-
-      // Import the vAuto enricher
-      const enricher = require("./carmaxVautoScraper");
 
       // Override console.log to emit to websocket
       const originalLog = console.log;
@@ -372,7 +354,11 @@ class WebServer {
         originalLog(...args);
       };
 
-      await enricher();
+      // Use the new clean enrichment service
+      const {
+        enrichVehiclesWithVAuto,
+      } = require("./services/vauto-enrichment");
+      await enrichVehiclesWithVAuto(jobId);
 
       // Restore console.log
       console.log = originalLog;
@@ -386,19 +372,24 @@ class WebServer {
     }
   }
 
-  async startCompleteWorkflow(mode, jobId) {
+  async startCompleteWorkflow(jobId) {
     try {
-      this.io.emit("jobStarted", { type: "complete", mode, jobId });
+      this.io.emit("jobStarted", { type: "complete", jobId });
 
-      // Set environment variables from .env or process.env directly
-      // (No user credentials lookup)
-      // process.env.CARMAX_EMAIL, CARMAX_PASSWORD, VAUTO_USERNAME, VAUTO_PASSWORD, VAUTO_SECRET_KEY should already be set
+      // Override console.log to emit to websocket
+      const originalLog = console.log;
+      console.log = (...args) => {
+        const message = args.join(" ");
+        this.io.emit("progress", { type: "complete", message });
+        originalLog(...args);
+      };
 
-      // First run CarMax scraping
-      await this.startCarMaxScrapingInternal(mode);
+      // Use the new clean workflow service
+      const { runCompleteWorkflow } = require("./services/workflow");
+      await runCompleteWorkflow(jobId);
 
-      // Then run vAuto enrichment
-      await this.startVAutoEnrichmentInternal();
+      // Restore console.log
+      console.log = originalLog;
 
       this.runningJobs.delete("complete");
       this.io.emit("jobCompleted", { type: "complete", jobId });
@@ -407,30 +398,6 @@ class WebServer {
       this.runningJobs.delete("complete");
       this.io.emit("jobError", { type: "complete", error: error.message });
     }
-  }
-
-  async startCarMaxScrapingInternal(mode) {
-    if (mode === "mylist") {
-      await this.scrapeMyList();
-    } else {
-      const scraper = require("./carmaxScraper");
-      await scraper.scrapeAuctions();
-    }
-  }
-
-  async startVAutoEnrichmentInternal() {
-    const enricher = require("./carmaxVautoScraper");
-    await enricher();
-  }
-
-  async scrapeMyList() {
-    // Import and use the My List scraper
-    const { scrapeMyList } = require("./carmaxScraper");
-    this.io.emit("progress", {
-      type: "carmax",
-      message: "🔍 Navigating to CarMax My List...",
-    });
-    return await scrapeMyList();
   }
 
   start(port = 3000) {

@@ -8,8 +8,11 @@
     "scrape": "node cli.js complete",
     "carmax": "node cli.js carmax",
     "vauto": "node cli.js vauto",
-    "mylist": "node cli.js carmax --mode mylist",
-    "auctions": "node cli.js carmax --mode auctions"
+    "mylist": "node cli.js carmax",
+    "status": "node cli.js status",
+    "test-browser": "node cli.js carmax --testing-browser",
+    "test-complete": "node cli.js complete --testing-browser",
+    "test-enhanced": "node test-enhanced-scraper.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

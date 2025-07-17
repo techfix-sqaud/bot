@@ -9,41 +9,35 @@ const { program } = require("commander");
 const { loadJSON } = require("./src/utils");
 require("dotenv").config();
 
-// Import scrapers
-const enrichVehiclesWithVAuto = require("./src/carmaxVautoScraper");
+// Import clean services
+const { scrapeMyList } = require("./src/scrapers/carmax-mylist-scraper");
+const { enrichVehiclesWithVAuto } = require("./src/services/vauto-enrichment");
+const { runCompleteWorkflow } = require("./src/services/workflow");
 
 program
   .name("carmax-vauto-bot")
   .description("CarMax to vAuto Vehicle Enrichment Bot")
   .version("1.0.0");
 
-// CarMax scraping command
+// CarMax My List scraping command
 program
   .command("carmax")
-  .description("Scrape vehicle data from CarMax")
-  .option(
-    "-m, --mode <mode>",
-    'scraping mode: "auctions" or "mylist"',
-    "mylist"
-  )
+  .description("Scrape vehicle data from CarMax My List")
+  .option("--testing-browser", "Show browser window for testing/debugging")
   .action(async (options) => {
-    console.log(`🚀 Starting CarMax scraping in ${options.mode} mode...`);
+    console.log("🚀 Starting CarMax My List scraping...");
+
+    // Set environment variable for testing browser if flag is provided
+    if (options.testingBrowser) {
+      process.env.TESTING_BROWSER = "true";
+      console.log("🔍 Testing browser mode enabled - browser will be visible");
+    }
 
     try {
-      if (options.mode === "mylist") {
-        const { scrapeMyList } = require("./src/carmaxScraper");
-        await scrapeMyList();
-      } else if (options.mode === "auctions") {
-        const carmaxScraper = require("./src/carmaxScraper");
-        await carmaxScraper.scrapeAuctions();
-      } else {
-        console.error('❌ Invalid mode. Use "auctions" or "mylist"');
-        process.exit(1);
-      }
-
-      console.log("✅ CarMax scraping completed!");
+      await scrapeMyList();
+      console.log("✅ CarMax My List scraping completed!");
     } catch (error) {
-      console.error("❌ CarMax scraping failed:", error.message);
+      console.error("❌ CarMax My List scraping failed:", error.message);
       process.exit(1);
     }
   });
@@ -78,39 +72,20 @@ program
 // Complete workflow command
 program
   .command("complete")
-  .description("Run complete workflow: CarMax scraping + vAuto enrichment")
-  .option(
-    "-m, --mode <mode>",
-    'CarMax scraping mode: "auctions" or "mylist"',
-    "mylist"
-  )
+  .description("Run complete workflow: CarMax My List + vAuto enrichment")
+  .option("--testing-browser", "Show browser window for testing/debugging")
   .action(async (options) => {
-    console.log(`🚀 Starting complete workflow with ${options.mode} mode...`);
+    console.log("🚀 Starting complete workflow...");
+
+    // Set environment variable for testing browser if flag is provided
+    if (options.testingBrowser) {
+      process.env.TESTING_BROWSER = "true";
+      console.log("🔍 Testing browser mode enabled - browser will be visible");
+    }
 
     try {
-      // Step 1: CarMax scraping
-      console.log("\n📦 Step 1: CarMax Scraping");
-      if (options.mode === "mylist") {
-        const { scrapeMyList } = require("./src/carmaxScraper");
-        await scrapeMyList();
-      } else {
-        const carmaxScraper = require("./src/carmaxScraper");
-        await carmaxScraper.scrapeAuctions();
-      }
-
-      // Step 2: vAuto enrichment
-      console.log("\n💎 Step 2: vAuto Enrichment");
-      await enrichVehiclesWithVAuto();
-
-      console.log("\n✅ Complete workflow finished successfully!");
-
-      // Show summary
-      const vehicles = loadJSON("./data/vehicles.json");
-      const enrichedCount = vehicles.filter((v) => v.vautoData).length;
-      console.log(`\n📊 Summary:`);
-      console.log(`   Total vehicles: ${vehicles.length}`);
-      console.log(`   Enriched with vAuto: ${enrichedCount}`);
-      console.log(`   Pending enrichment: ${vehicles.length - enrichedCount}`);
+      await runCompleteWorkflow();
+      console.log("✅ Complete workflow finished successfully!");
     } catch (error) {
       console.error("❌ Complete workflow failed:", error.message);
       process.exit(1);
@@ -166,5 +141,12 @@ if (process.argv.length <= 2) {
   console.log("  npm run mylist     # Scrape My List");
   console.log("  npm run auctions   # Scrape All Auctions");
   console.log("  npm run scrape     # Complete workflow");
+  console.log("\nTesting/Debugging:");
+  console.log(
+    "  node cli.js carmax --testing-browser    # Show browser window"
+  );
+  console.log(
+    "  node cli.js complete --testing-browser  # Show browser for complete workflow"
+  );
   console.log("\nFor more options run: node cli.js --help");
 }

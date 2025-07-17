@@ -1,210 +1,244 @@
-# CarMax vAuto Bot - Vehicle Enrichment System
+# CarMax vAuto Bot - My List Vehicle Enrichment
 
-A comprehensive Node.js application that automates CarMax vehicle data scraping and enrichment with vAuto evaluation data. Features a modern web interface with secure user authentication and credential management.
+> **Clean, focused automation tool** for scraping CarMax My List vehicles and enriching them with vAuto evaluation data.
 
 ## 🌟 Features
 
-### 🔐 Secure Authentication System
-- **User Registration & Login**: Secure account creation with encrypted credential storage
-- **Multi-Platform Credentials**: Manage CarMax, vAuto, and API credentials in one place
-- **Session Management**: Persistent login sessions with automatic logout
-- **Encrypted Storage**: Service passwords encrypted using AES-256-CBC
+### 🚗 CarMax My List Integration
+- **Automated Login**: Secure authentication using environment credentials
+- **My List Scraping**: Extract vehicle data from your saved CarMax vehicles
+- **Smart Data Extraction**: Comprehensive vehicle information including VIN, mileage, YMMT
+- **Duplicate Detection**: Prevents duplicate entries by VIN validation
 
-### 🚗 Vehicle Data Processing
-- **CarMax Integration**: Automated scraping of auctions and My List data
-- **vAuto Enrichment**: Comprehensive vehicle evaluation including:
-  - KBB (Kelley Blue Book) values
-  - MMR (Market Make Ready) values
-  - Vehicle history (accidents, damage, ownership)
-  - Odometer verification
-- **Smart Processing**: Only processes vehicles without existing vAuto data
-- **Data Export**: Download enriched vehicle data in JSON format
+### 💎 vAuto Enrichment
+- **Market Analysis**: Automatic vAuto evaluation for each vehicle
+- **KBB Values**: Kelley Blue Book pricing information
+- **MMR Data**: Market Make Ready average pricing
+- **History Reports**: Vehicle history and accident data
+- **2FA Support**: Handles two-factor authentication when required
 
 ### 🎮 Modern Web Interface
 - **Real-time Dashboard**: Live job progress and status updates
 - **Interactive Controls**: Start, stop, and monitor scraping jobs
-- **Vehicle Grid View**: Browse and preview scraped vehicle data
+- **Data Export**: Download vehicle data as JSON
 - **Responsive Design**: Works on desktop and mobile devices
+
+### 🔧 Clean Architecture
+- **Modular Design**: Organized into focused services and scrapers
+- **CLI Tools**: Command-line interface for automation
+- **Environment Config**: Secure credential management
+- **Docker Support**: Containerized deployment ready
 
 ## 🚀 Quick Start
 
 ### 1. Installation
 ```bash
+git clone <repository-url>
+cd bot
 npm install
 ```
 
-### 2. First Time Setup
-1. Start the application:
-   ```bash
-   npm start
-   ```
+### 2. Environment Setup
+Create a `.env` file with your credentials:
+```bash
+cp .env.example .env
+```
 
-2. Open your browser and navigate to `http://localhost:3000`
+Edit `.env` and add your credentials:
+```env
+# CarMax Credentials
+CARMAX_EMAIL=your-carmax-email@example.com
+CARMAX_PASSWORD=your-carmax-password
 
-3. Click "Create one here" to register a new account
+# vAuto Credentials  
+VAUTO_USERNAME=your-vauto-username
+VAUTO_PASSWORD=your-vauto-password
 
-4. Fill in the registration form with:
-   - **Your Email & Password**: For logging into the bot
-   - **CarMax Credentials**: Your CarMax Auctions login details
-   - **vAuto Credentials**: Your vAuto platform access credentials
-   - **vAuto Secret Key**: Your vAuto API secret key
+# Optional Settings
+NODE_ENV=development
+SHOW_BROWSER=false
+```
 
-### 3. Using the Dashboard
-Once logged in, you can:
-- **Scrape Auctions**: Get all vehicles from CarMax auctions
-- **Scrape My List**: Get vehicles from your CarMax saved list
-- **vAuto Enrichment**: Enhance vehicle data with vAuto evaluations
-- **Complete Workflow**: Run scraping + enrichment in sequence
+### 3. Quick Start Options
+
+#### Web Interface (Recommended)
+```bash
+npm start
+```
+Open `http://localhost:3000` in your browser.
+
+#### Command Line Interface
+```bash
+# Complete workflow (My List + vAuto enrichment)
+npm run scrape
+
+# Individual steps
+npm run mylist    # Scrape My List only
+npm run vauto     # vAuto enrichment only
+npm run status    # Show current status
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── scrapers/           # CarMax scraping modules
+│   ├── carmax-login.js
+│   ├── carmax-navigation.js
+│   ├── vehicle-extractor.js
+│   └── carmax-mylist-scraper.js
+├── services/           # Business logic services
+│   ├── vauto-login.js
+│   ├── vauto-evaluation.js
+│   ├── vauto-enrichment.js
+│   └── workflow.js
+├── lib/               # Utility libraries
+├── database/          # Database schemas
+├── config.js          # Configuration settings
+├── utils.js           # Common utilities
+├── webServer.js       # Express web server
+└── index.js           # Main entry point
+```
 
 ## 🔧 Configuration
 
-### Environment Variables (Optional)
-Create a `.env` file for additional configuration:
-```env
-# Security (recommended for production)
-JWT_SECRET=your-jwt-secret-key-here
-ENCRYPTION_KEY=your-32-character-encryption-key
-SESSION_SECRET=your-session-secret-key
+### Environment Variables
+- `CARMAX_EMAIL` - Your CarMax Auctions email
+- `CARMAX_PASSWORD` - Your CarMax Auctions password
+- `VAUTO_USERNAME` - Your vAuto platform username
+- `VAUTO_PASSWORD` - Your vAuto platform password
+- `NODE_ENV` - Environment (development/production)
+- `SHOW_BROWSER` - Show browser during scraping (true/false)
+- `PORT` - Web server port (default: 3000)
 
-# Database (optional)
-DB_HOST=localhost
-DB_USER=postgres
-DB_NAME=carmax_bot
-DB_PASSWORD=your_db_password
+### Browser Settings
+- Headless mode is automatically enabled in production
+- 2FA support is disabled in server environments
+- User data is persisted in `./user_data` directory
 
-# Development
-NODE_ENV=development
+## 🚀 Deployment
+
+### Docker
+```bash
+docker build -t carmax-vauto-bot .
+docker run -d -p 3000:3000 --env-file .env carmax-vauto-bot
 ```
 
-### Production Deployment
-For production environments:
-1. Set secure environment variables
-2. Use HTTPS for encrypted communication
-3. Configure a proper database instead of file storage
-4. Set `NODE_ENV=production`
-
-## 📱 Web Interface
-
-### Authentication Pages
-- **Login** (`/login`): Secure user authentication
-- **Signup** (`/signup`): New user registration with credential setup
-
-### Dashboard Features
-- **Control Panel**: Start/stop jobs with real-time feedback
-- **Progress Monitor**: Live console output and job status
-- **Vehicle Data Grid**: Preview scraped vehicles
-- **Export Tools**: Download data in various formats
-
-## 🛡️ Security Features
-
-- **Password Hashing**: User passwords hashed with bcrypt
-- **Credential Encryption**: Service passwords encrypted, not hashed
-- **Session Security**: Secure session management with expiration
-- **Input Validation**: Server-side validation for all user inputs
-- **CSRF Protection**: Built-in protection against common attacks
-
-## 📋 API Endpoints
-
-### Authentication
-- `GET /login` - Login page
-- `GET /signup` - Registration page
-- `POST /auth/login` - User login
-- `POST /auth/signup` - User registration
-- `GET /auth/logout` - User logout
-
-### Dashboard & Data
-- `GET /` - Main dashboard (requires auth)
-- `GET /api/status` - Job and vehicle status
-- `GET /api/vehicles` - Vehicle data
-- `GET /api/vehicles/export` - Export vehicle data
-
-### Job Control
-- `POST /api/scrape/carmax` - Start CarMax scraping
-- `POST /api/scrape/vauto` - Start vAuto enrichment
-- `POST /api/scrape/complete` - Start complete workflow
-- `POST /api/cancel/:jobType` - Cancel running job
-
-## 🔄 Workflow Options
-node test-scraper.js
+### Docker Compose
+```bash
+docker-compose up -d
 ```
 
-## How It Works
+## 📊 Data Output
 
-1. **Data Loading**: 
-   - Loads existing vehicles from `vehicles.json`
-   - Identifies vehicles that need vAuto evaluation (missing vautoData)
-
-2. **vAuto Enrichment**:
-   - Logs into vAuto evaluation platform
-   - Inputs VIN and mileage for each vehicle
-   - Extracts comprehensive evaluation data
-   - Processes AutoCheck vehicle history data
-
-3. **Data Enhancement**:
-   - Formats evaluation data into structured notes
-   - Updates vehicles.json with new vAuto data
-   - Maintains all existing vehicle information
-
-## Output Format
-
-Each vehicle in `vehicles.json` will contain:
-
+### Vehicle Data Structure
 ```json
 {
   "vin": "1HGBH41JXMN109186",
-  "mileage": "75000",
-  "year": "2021",
-  "makeModel": "Honda Accord",
-  "title": "2021 Honda Accord",
-  "href": "/vehicle/12345",
+  "runNumber": "12345",
+  "year": "2023",
+  "make": "Honda",
+  "model": "Civic",
+  "trim": "EX",
+  "mileage": "15,000",
+  "ymmt": "2023 Honda Civic EX",
+  "source": "CarMax My List",
+  "scrapedAt": "2024-01-15T10:30:00.000Z",
   "vautoData": {
-    "odometerCheck": "No Issue",
-    "owner": "1 - Own",
-    "ownerDateText": "03/23",
-    "accidentDamage": [],
-    "kbb": "$18,500",
-    "mmr": "$17,800"
-  },
-  "note": "1 - Own\\n03/23\\nk= $18,500\\nm= $17,800",
-  "scrapedAt": "2025-06-29T...",
-  "enrichedAt": "2025-06-29T..."
+    "kbb": "$22,500",
+    "mmr": "$21,800",
+    "ownerHistory": [...],
+    "accidentDamage": [...],
+    "evaluatedAt": "2024-01-15T10:35:00.000Z"
+  }
 }
 ```
 
-## Configuration
+### Output Files
+- `data/vehicles.json` - Main vehicle database
+- `data/mylist_vehicles_YYYY-MM-DD_HH-mm-ss.json` - Timestamped backups
 
-Edit `src/config.js` to modify:
-- URLs for CarMax and vAuto
-- Headless mode (true/false)
-- Other browser settings
+## � Enhanced Scraper Features
 
-## Error Handling
+### Improved Vehicle Collection
+The bot now includes an enhanced scraper that ensures all vehicles from your My List are collected:
 
-The bot includes comprehensive error handling:
-- Retries for network timeouts
-- Graceful handling of missing vehicle data
-- Detailed logging for debugging
-- Continues processing even if individual vehicles fail
+- **Smart Vehicle Detection**: Automatically detects total vehicle count from page
+- **Progressive Scrolling**: Gradually scrolls through the page to load all vehicles
+- **Duplicate Prevention**: Uses VIN tracking to prevent duplicate entries
+- **Enhanced Selectors**: Multiple CSS selectors for robust vehicle element detection
+- **Real-time Progress**: Shows collection progress as vehicles are found
 
-## Files
+### Testing Browser Mode
+For debugging and validation, you can run the scraper with a visible browser window:
 
-- `src/carmaxVautoScraper.js` - Main scraper combining CarMax and vAuto
-- `src/index.js` - Entry point
-- `test-scraper.js` - Test runner with detailed logging
-- `src/config.js` - Configuration settings
-- `src/utils.js` - Utility functions for JSON handling
-- `data/vehicles.json` - Output file with vehicle data
+```bash
+# Run scraper with visible browser
+npm run test-browser
 
-## Troubleshooting
+# Or use the CLI directly
+node cli.js carmax --testing-browser
+node cli.js complete --testing-browser
 
-1. **Login Issues**: Make sure credentials are correct in `.env` file
-2. **Timeout Errors**: Check internet connection and increase timeout values
-3. **Missing Elements**: Websites may have changed - check selectors in code
-4. **Permission Errors**: Ensure write access to `./data/` directory
+# Test the enhanced scraper specifically
+npm run test-enhanced
+```
 
-## Notes
+When testing browser mode is enabled:
+- Browser window will be visible during scraping
+- You can watch the scraper in action
+- Useful for debugging selector issues
+- Helps validate the scraping process
 
-- The bot uses persistent browser sessions via `userDataDir` for better login handling
-- Processing is sequential to avoid rate limiting
-- Large datasets may take considerable time to process
-- The bot respects website rate limits with built-in delays
+## �🔧 CLI Commands
+
+```bash
+# Core commands
+node cli.js carmax     # Scrape CarMax My List
+node cli.js vauto      # Enrich with vAuto data
+node cli.js complete   # Complete workflow
+node cli.js status     # Show status and statistics
+
+# Testing/Debugging commands
+node cli.js carmax --testing-browser     # Scrape with visible browser
+node cli.js complete --testing-browser   # Complete workflow with visible browser
+
+# NPM shortcuts
+npm run mylist         # Same as: node cli.js carmax
+npm run vauto         # Same as: node cli.js vauto
+npm run scrape        # Same as: node cli.js complete
+npm run status        # Same as: node cli.js status
+
+# Testing shortcuts
+npm run test-browser   # Scrape with visible browser
+npm run test-complete  # Complete workflow with visible browser
+npm run test-enhanced  # Test enhanced scraper functionality
+```
+
+## 🛠️ Development
+
+### Project Philosophy
+This project has been cleaned up and simplified to focus solely on CarMax My List functionality. The architecture emphasizes:
+
+- **Single Responsibility**: Each module has a clear, focused purpose
+- **Separation of Concerns**: Login, navigation, extraction, and enrichment are separate
+- **Maintainability**: Small, focused files instead of large monoliths
+- **Testability**: Modular design makes testing easier
+
+### Contributing
+1. Keep modules small and focused
+2. Use descriptive function and variable names
+3. Add proper error handling and logging
+4. Update documentation for any changes
+
+## 📝 License
+
+ISC License - see LICENSE file for details.
+
+## 🔗 Support
+
+For issues or questions:
+1. Check the logs in the web interface
+2. Run `npm run status` to verify configuration
+3. Ensure your CarMax My List has vehicles saved
+4. Verify your vAuto credentials are correct
