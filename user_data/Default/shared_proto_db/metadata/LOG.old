@@ -1,3 +1,2 @@
-2025/06/30-22:46:35.831 14c0b Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/shared_proto_db/metadata/MANIFEST-000001
-2025/06/30-22:46:35.832 14c0b Recovering log #3
-2025/06/30-22:46:35.834 14c0b Reusing old log /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/shared_proto_db/metadata/000003.log 
+2025/07/18-13:38:37.760 a403 Creating DB /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/shared_proto_db/metadata since it was missing.
+2025/07/18-13:38:37.765 a403 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/shared_proto_db/metadata/MANIFEST-000001

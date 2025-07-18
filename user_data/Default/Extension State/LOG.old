@@ -1,3 +1,2 @@
-2025/06/30-22:46:35.985 d10f Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Extension State/MANIFEST-000001
-2025/06/30-22:46:35.985 d10f Recovering log #3
-2025/06/30-22:46:35.989 d10f Reusing old log /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Extension State/000003.log 
+2025/07/18-13:38:37.880 a403 Creating DB /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Extension State since it was missing.
+2025/07/18-13:38:37.880 a403 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Extension State/MANIFEST-000001
