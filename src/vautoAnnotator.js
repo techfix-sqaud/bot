@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
-const { vautoUrl, headless } = require("./config");
-const { loadJSON, summarizeVehicle, fuzzyMatchVIN } = require("./utils");
+const { vautoUrl, headless } = require("./config/config");
+const { loadJSON, summarizeVehicle, fuzzyMatchVIN } = require("./utils/utils");
 require("dotenv").config();
 
 /**
@@ -45,7 +45,7 @@ async function loginToVAuto(page) {
     await page.type("#password", vautoPassword, { delay: 100 });
 
     // Wait for network to settle before clicking
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Click final sign in button
     await page.click("#signIn");
@@ -98,7 +98,7 @@ async function getVehicleEvaluation(page, vin, mileage) {
     await page.click("#btnEvaluate");
 
     // Wait for evaluation to complete
-    await new Promise(resolve => setTimeout(resolve, 20000));
+    await new Promise((resolve) => setTimeout(resolve, 20000));
 
     // Wait for AutoCheck frame to load
     const frame = await page.waitForFunction(
@@ -315,7 +315,7 @@ async function annotateUser(user) {
         console.log(`✅ Generated note for ${vehicle.vin}:\n${formattedNote}`);
 
         // Wait between requests to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       } catch (error) {
         console.error(`❌ Failed to process ${vehicle.vin}:`, error.message);
         results.push({

@@ -11,8 +11,8 @@ const socketIo = require("socket.io");
 const path = require("path");
 const fs = require("fs");
 const session = require("express-session");
-const { loadJSON, saveJSON } = require("./utils");
-const auth = require("./auth");
+const { loadJSON, saveJSON } = require("./utils/utils");
+const auth = require("./auth/auth");
 require("dotenv").config();
 
 class WebServer {
@@ -416,7 +416,7 @@ class WebServer {
 
   async scrapeMyList() {
     // Import and use the My List scraper
-    const { scrapeMyList } = require("./carmaxScraper");
+    const { scrapeMyList } = require("./scrapers/carmaxScraper");
     this.io.emit("progress", {
       type: "carmax",
       message: "🔍 Navigating to CarMax My List...",
