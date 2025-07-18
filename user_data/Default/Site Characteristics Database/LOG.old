@@ -1,3 +1,2 @@
-2025/06/30-22:46:35.481 b603 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Site Characteristics Database/MANIFEST-000001
-2025/06/30-22:46:35.481 b603 Recovering log #3
-2025/06/30-22:46:35.481 b603 Reusing old log /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Site Characteristics Database/000003.log 
+2025/07/18-13:38:37.316 b603 Creating DB /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Site Characteristics Database since it was missing.
+2025/07/18-13:38:37.319 b603 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Site Characteristics Database/MANIFEST-000001

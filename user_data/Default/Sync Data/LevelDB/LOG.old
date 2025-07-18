@@ -1,3 +1,2 @@
-2025/06/30-22:46:35.479 8b03 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Sync Data/LevelDB/MANIFEST-000001
-2025/06/30-22:46:35.480 8b03 Recovering log #3
-2025/06/30-22:46:35.481 8b03 Reusing old log /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Sync Data/LevelDB/000003.log 
+2025/07/18-13:38:37.305 b703 Creating DB /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Sync Data/LevelDB since it was missing.
+2025/07/18-13:38:37.319 b703 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Sync Data/LevelDB/MANIFEST-000001

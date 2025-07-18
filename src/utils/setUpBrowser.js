@@ -1,6 +1,6 @@
 // Launch browser and return { browser, page }
-const { launchPuppeteer } = require("../utils");
-const config = require("../config");
+const { launchPuppeteer } = require("./utils");
+const config = require("../config/config");
 async function setupBrowser() {
   const browser = await launchPuppeteer({
     headless: config.headless,

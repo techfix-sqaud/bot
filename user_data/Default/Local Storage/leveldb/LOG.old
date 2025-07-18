@@ -1,3 +1,2 @@
-2025/06/30-22:46:35.557 2d0f Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Local Storage/leveldb/MANIFEST-000001
-2025/06/30-22:46:35.561 2d0f Recovering log #60
-2025/06/30-22:46:35.561 2d0f Reusing old log /Users/jadsahmad/Desktop/Repos/rdu/bot/user_data/Default/Local Storage/leveldb/000060.log 
+2025/07/18-13:38:37.502 3b0b Creating DB /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Local Storage/leveldb since it was missing.
+2025/07/18-13:38:37.628 3b0b Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Local Storage/leveldb/MANIFEST-000001
