@@ -267,7 +267,7 @@
     <div class="container">
         <div class="header">
             <h1>🚗 vAuto Vehicle Enrichment Bot</h1>
-            <p>Scrape CarMax auctions and enrich with vAuto evaluation data</p>
+            <p>Scrape CarMax "My List" and enrich with vAuto evaluation data</p>
         </div>
 
         <div class="status-grid">
@@ -288,19 +288,8 @@
         <div class="controls">
             <div class="control-section">
                 <h3>🔄 Complete Workflow</h3>
-                <p>Run CarMax scraping followed by vAuto enrichment</p>
+                <p>Run CarMax "My List" scraping followed by vAuto enrichment</p>
                 
-                <div class="mode-selector">
-                    <label>
-                        <input type="radio" name="completeMode" value="auctions" checked>
-                        All Auctions
-                    </label>
-                    <label>
-                        <input type="radio" name="completeMode" value="mylist">
-                        My List Only
-                    </label>
-                </div>
-
                 <div class="button-group">
                     <button class="btn btn-success" id="runCompleteBtn">
                         🚀 Run Complete Workflow
@@ -315,22 +304,11 @@
 
             <div class="control-section">
                 <h3>🏪 CarMax Scraping</h3>
-                <p>Scrape vehicle data from CarMax auctions</p>
+                <p>Scrape vehicle data from your CarMax "My List"</p>
                 
-                <div class="mode-selector">
-                    <label>
-                        <input type="radio" name="carmaxMode" value="auctions" checked>
-                        All Auctions
-                    </label>
-                    <label>
-                        <input type="radio" name="carmaxMode" value="mylist">
-                        My List Only
-                    </label>
-                </div>
-
                 <div class="button-group">
                     <button class="btn btn-primary" id="runCarmaxBtn">
-                        📦 Scrape CarMax
+                        📦 Scrape CarMax My List
                     </button>
                 </div>
 
@@ -471,13 +449,11 @@
 
         // Button event handlers
         runCompleteBtn.addEventListener('click', () => {
-            const mode = document.querySelector('input[name="completeMode"]:checked').value;
-            startJob('/api/scrape/complete', { mode });
+            startJob('/api/scrape/complete', { mode: 'mylist' });
         });
 
         runCarmaxBtn.addEventListener('click', () => {
-            const mode = document.querySelector('input[name="carmaxMode"]:checked').value;
-            startJob('/api/scrape/carmax', { mode });
+            startJob('/api/scrape/carmax', { mode: 'mylist' });
         });
 
         runVautoBtn.addEventListener('click', () => {
@@ -568,7 +544,7 @@
 
         function updateDataSummary() {
             if (currentStatus.vehicleCount === 0) {
-                dataSummary.innerHTML = 'No vehicle data found. Start by scraping CarMax auctions.';
+                dataSummary.innerHTML = 'No vehicle data found. Start by scraping your CarMax "My List".';
                 vehicleCountInfo.innerHTML = 'No vehicles loaded yet';
             } else {
                 dataSummary.innerHTML = `

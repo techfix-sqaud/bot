@@ -333,13 +333,8 @@ class WebServer {
         originalLog(...args);
       };
 
-      // Start scraping based on mode
-      if (mode === "mylist") {
-        await this.scrapeMyList();
-      } else {
-        const scraper = require("./carmaxScraper");
-        await scraper.scrapeAuctions();
-      }
+      // Only support 'mylist' mode
+      await this.scrapeMyList();
 
       // Restore console.log
       console.log = originalLog;
@@ -410,12 +405,8 @@ class WebServer {
   }
 
   async startCarMaxScrapingInternal(mode) {
-    if (mode === "mylist") {
-      await this.scrapeMyList();
-    } else {
-      const scraper = require("./carmaxScraper");
-      await scraper.scrapeAuctions();
-    }
+    // Only support 'mylist' mode
+    await this.scrapeMyList();
   }
 
   async startVAutoEnrichmentInternal() {

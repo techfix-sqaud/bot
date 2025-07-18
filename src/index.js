@@ -43,6 +43,5 @@ if (require.main === module) {
     "  npm run scrape           # Complete workflow (mylist + vauto)"
   );
   console.log("  npm run mylist           # Scrape My List only");
-  console.log("  npm run auctions         # Scrape All Auctions");
   console.log("  npm run vauto            # vAuto enrichment only");
 }

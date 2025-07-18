@@ -8,8 +8,7 @@
     "scrape": "node cli.js complete",
     "carmax": "node cli.js carmax",
     "vauto": "node cli.js vauto",
-    "mylist": "node cli.js carmax --mode mylist",
-    "auctions": "node cli.js carmax --mode auctions"
+    "mylist": "node cli.js carmax"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
