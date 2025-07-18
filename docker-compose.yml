@@ -1,26 +1,21 @@
 version: '3.8'
 
 services:
-  bot:
+  vauto-bot:
     build: .
-    environment:
-      - VAUTO_USERNAME=${VAUTO_USERNAME}
-      - VAUTO_PASSWORD=${VAUTO_PASSWORD}
-      - NODE_ENV=production
-      - MODE=web
-      - PORT=3000
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     volumes:
-      # Mount data directory for persistent storage
       - ./data:/app/data
-      # Add shared memory for browser
-      - /dev/shm:/dev/shm
-    # Add shared memory size for browser
-    shm_size: '2gb'
+      - ./user_data:/app/user_data
     restart: unless-stopped
-    # Add security options for browser
-    security_opt:
-      - seccomp:unconfined
-    # Web interface mode - provides GUI for managing JSON file
-    command: ["node", "src/app.js"]
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Health check passed')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

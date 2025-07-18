@@ -1,46 +1,47 @@
+#!/usr/bin/env node
+
+/**
+ * Main entry point for CarMax-vAuto Vehicle Enrichment Bot
+ * Production-ready automation tool
+ */
+
 require("dotenv").config();
-const VehicleDataOrchestrator = require("./orchestrator");
 
-// Example usage - you can modify this based on your needs
-const sampleUser = {
-  email: "user@example.com",
-  vins: [
-    // Add your VINs here, or leave empty to just scrape and export
-    // "1HGBH41JXMN109186",
-    // "2HGFA16506H000001"
-  ],
-};
+// Validate required environment variables
+const requiredEnvs = [
+  "CARMAX_EMAIL",
+  "CARMAX_PASSWORD",
+  "VAUTO_USERNAME",
+  "VAUTO_PASSWORD",
+];
+const missingEnvs = requiredEnvs.filter((env) => !process.env[env]);
 
-(async () => {
-  try {
-    console.log("🚀 Starting Vehicle Data Processing...");
+if (missingEnvs.length > 0) {
+  console.error(
+    "❌ Missing required environment variables:",
+    missingEnvs.join(", ")
+  );
+  console.error("Please check your .env file");
+  process.exit(1);
+}
 
-    const orchestrator = new VehicleDataOrchestrator();
+// Check if we're being called directly or imported
+if (require.main === module) {
+  console.log("🚀 Starting CarMax-vAuto Vehicle Enrichment Bot...");
+  console.log("🌐 Starting web interface...");
+  console.log("");
 
-    // Configuration options
-    const options = {
-      user: sampleUser.vins.length > 0 ? sampleUser : null,
-      skipScraping: false, // Set to true to use existing data
-      exportFormat: "xlsx", // 'xlsx', 'csv', 'xls', or 'json'
-      exportFilename: null, // Leave null for auto-generated filename
-    };
+  const WebServer = require("./webServer");
+  const server = new WebServer();
 
-    console.log("\n📋 Configuration:");
-    console.log(`📊 Export format: ${options.exportFormat.toUpperCase()}`);
-    console.log(`🔄 Skip scraping: ${options.skipScraping ? "Yes" : "No"}`);
-    console.log(`👤 Process vAuto: ${options.user ? "Yes" : "No"}`);
-
-    // Run the complete workflow
-    const results = await orchestrator.runCompleteWorkflow(options);
-
-    console.log("\n✅ All processing completed successfully!");
-    console.log("\n📄 Files created:");
-    console.log(`📁 JSON: ${results.jsonFile}`);
-    if (results.exportFile) {
-      console.log(`📊 Export: ${results.exportFile}`);
-    }
-  } catch (error) {
-    console.error("❌ Process failed:", error.message);
-    process.exit(1);
-  }
-})();
+  const port = process.env.PORT || 3000;
+  server.start(port);
+  console.log(`📱 Web interface available at: http://localhost:${port}`);
+  console.log("");
+  console.log("Available CLI commands:");
+  console.log(
+    "  npm run scrape           # Complete workflow (mylist + vauto)"
+  );
+  console.log("  npm run mylist           # Scrape My List only");
+  console.log("  npm run vauto            # vAuto enrichment only");
+}

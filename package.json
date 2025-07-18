@@ -1,39 +1,40 @@
 {
-  "name": "bot",
+  "name": "carmax-vauto-bot",
   "version": "1.0.0",
   "main": "src/index.js",
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  },
   "scripts": {
-    "start": "node src/app.js",
-    "start:script": "./start.sh",
-    "start:production": "./start-production.sh",
-    "dev": "node src/index.js",
-    "web": "node src/webInterface.js",
-    "scrape": "node test-scraper.js",
-    "test-login": "node test-login.js",
-    "test-browser": "node test-browser-config.js",
-    "cli": "node cli.js",
-    "workflow": "node cli.js",
-    "list": "node cli.js list",
-    "export": "node cli.js export",
-    "annotate": "node cli.js annotate",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "echo 'Setting up Puppeteer for deployment...'"
+    "start": "node src/index.js",
+    "setup": "node setup.js",
+    "scrape": "node cli.js complete",
+    "carmax": "node cli.js carmax",
+    "vauto": "node cli.js vauto",
+    "mylist": "node cli.js carmax"
   },
   "dependencies": {
-    "csv-writer": "^1.6.0",
+    "bcryptjs": "^3.0.2",
+    "commander": "^9.4.1",
     "dotenv": "^16.6.1",
-    "express": "^4.21.2",
+    "ejs": "^3.1.10",
+    "express": "^4.18.2",
+    "express-session": "^1.18.1",
+    "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
-    "moment": "^2.30.1",
+    "otplib": "^12.0.1",
+    "pg": "^8.16.3",
     "puppeteer": "^22.15.0",
-    "xlsx": "^0.18.5"
+    "socket.io": "^4.7.2"
   },
-  "keywords": [],
+  "keywords": [
+    "carmax",
+    "vauto",
+    "vehicle",
+    "scraper",
+    "automation"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "A bot for enriching vehicle data with vAuto evaluations"
+  "description": "Automated CarMax vehicle scraper with vAuto enrichment",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

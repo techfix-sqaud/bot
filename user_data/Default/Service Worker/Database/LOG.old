@@ -1,3 +1,2 @@
-2025/06/29-11:51:14.336 b503 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Service Worker/Database/MANIFEST-000001
-2025/06/29-11:51:14.341 b503 Recovering log #3
-2025/06/29-11:51:14.342 b503 Reusing old log /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Service Worker/Database/000003.log 
+2025/07/18-13:38:39.224 b303 Creating DB /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Service Worker/Database since it was missing.
+2025/07/18-13:38:39.225 b303 Reusing MANIFEST /Users/jadsahmad/Desktop/Repos/bot/user_data/Default/Service Worker/Database/MANIFEST-000001

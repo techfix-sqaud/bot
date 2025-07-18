@@ -1,71 +1,131 @@
-# vAuto Vehicle Enrichment Bot
+# CarMax vAuto Bot - Vehicle Enrichment System
 
-A Node.js bot that enriches existing vehicle data with comprehensive evaluation data from vAuto.
+A comprehensive Node.js application that automates CarMax vehicle data scraping and enrichment with vAuto evaluation data. Features a modern web interface with secure user authentication and credential management.
 
-## Features
+## 🌟 Features
 
-- **CarMax Integration**: Scrapes vehicle data from CarMax auctions or your saved My List
-- **Scraping Options**: 
-  - **All Auctions**: Scrape vehicles from all available CarMax auctions
-  - **My List**: Scrape only vehicles you've saved in your CarMax "My List"
-- **vAuto Integration**: Logs into vAuto and evaluates vehicles from your JSON file
-- **Comprehensive Data**: Gets detailed vehicle evaluation including:
+### 🔐 Secure Authentication System
+- **User Registration & Login**: Secure account creation with encrypted credential storage
+- **Multi-Platform Credentials**: Manage CarMax, vAuto, and API credentials in one place
+- **Session Management**: Persistent login sessions with automatic logout
+- **Encrypted Storage**: Service passwords encrypted using AES-256-CBC
+
+### 🚗 Vehicle Data Processing
+- **CarMax Integration**: Automated scraping of auctions and My List data
+- **vAuto Enrichment**: Comprehensive vehicle evaluation including:
   - KBB (Kelley Blue Book) values
   - MMR (Market Make Ready) values
   - Vehicle history (accidents, damage, ownership)
   - Odometer verification
-- **Smart Processing**: Only processes vehicles that don't already have vAuto data
-- **Data Persistence**: Updates vehicles.json with enriched evaluation data
-- **Web Interface**: Easy-to-use web interface for managing scraping and data export
+- **Smart Processing**: Only processes vehicles without existing vAuto data
+- **Data Export**: Download enriched vehicle data in JSON format
 
-## Setup
+### 🎮 Modern Web Interface
+- **Real-time Dashboard**: Live job progress and status updates
+- **Interactive Controls**: Start, stop, and monitor scraping jobs
+- **Vehicle Grid View**: Browse and preview scraped vehicle data
+- **Responsive Design**: Works on desktop and mobile devices
 
-1. **Install Dependencies**
+## 🚀 Quick Start
+
+### 1. Installation
+```bash
+npm install
+```
+
+### 2. First Time Setup
+1. Start the application:
    ```bash
-   npm install
+   npm start
    ```
 
-2. **Environment Variables**
-   
-   Make sure your `.env` file contains:
-   ```
-   VAUTO_USERNAME=your_vauto_username
-   VAUTO_PASSWORD=your_vauto_password
-   CARMAX_EMAIL=your_carmax_email
-   CARMAX_PASSWORD=your_carmax_password
-   ```
+2. Open your browser and navigate to `http://localhost:3000`
 
-## Usage
+3. Click "Create one here" to register a new account
 
-### Web Interface (Recommended)
-```bash
-npm start
+4. Fill in the registration form with:
+   - **Your Email & Password**: For logging into the bot
+   - **CarMax Credentials**: Your CarMax Auctions login details
+   - **vAuto Credentials**: Your vAuto platform access credentials
+   - **vAuto Secret Key**: Your vAuto API secret key
+
+### 3. Using the Dashboard
+Once logged in, you can:
+- **Scrape Auctions**: Get all vehicles from CarMax auctions
+- **Scrape My List**: Get vehicles from your CarMax saved list
+- **vAuto Enrichment**: Enhance vehicle data with vAuto evaluations
+- **Complete Workflow**: Run scraping + enrichment in sequence
+
+## 🔧 Configuration
+
+### Environment Variables (Optional)
+Create a `.env` file for additional configuration:
+```env
+# Security (recommended for production)
+JWT_SECRET=your-jwt-secret-key-here
+ENCRYPTION_KEY=your-32-character-encryption-key
+SESSION_SECRET=your-session-secret-key
+
+# Database (optional)
+DB_HOST=localhost
+DB_USER=postgres
+DB_NAME=carmax_bot
+DB_PASSWORD=your_db_password
+
+# Development
+NODE_ENV=development
 ```
-Then open your browser to `http://localhost:3000` and use the web interface to:
-- Choose between "All Auctions" or "My List" scraping
-- Monitor scraping progress in real-time
-- Cancel running jobs if needed
-- View and export scraped data
 
-### Command Line Interface
+### Production Deployment
+For production environments:
+1. Set secure environment variables
+2. Use HTTPS for encrypted communication
+3. Configure a proper database instead of file storage
+4. Set `NODE_ENV=production`
 
-#### Run Complete Workflow (CarMax + vAuto)
-```bash
-npm run scrape
-```
+## 📱 Web Interface
 
-#### Run Only CarMax Scraping
-```bash
-# Scrape all auctions
-node cli.js carmax --mode=auctions
+### Authentication Pages
+- **Login** (`/login`): Secure user authentication
+- **Signup** (`/signup`): New user registration with credential setup
 
-# Scrape only My List
-node cli.js carmax --mode=mylist
-```
+### Dashboard Features
+- **Control Panel**: Start/stop jobs with real-time feedback
+- **Progress Monitor**: Live console output and job status
+- **Vehicle Data Grid**: Preview scraped vehicles
+- **Export Tools**: Download data in various formats
 
-#### Run Only vAuto Enrichment
-```bash
-npm run vauto
+## 🛡️ Security Features
+
+- **Password Hashing**: User passwords hashed with bcrypt
+- **Credential Encryption**: Service passwords encrypted, not hashed
+- **Session Security**: Secure session management with expiration
+- **Input Validation**: Server-side validation for all user inputs
+- **CSRF Protection**: Built-in protection against common attacks
+
+## 📋 API Endpoints
+
+### Authentication
+- `GET /login` - Login page
+- `GET /signup` - Registration page
+- `POST /auth/login` - User login
+- `POST /auth/signup` - User registration
+- `GET /auth/logout` - User logout
+
+### Dashboard & Data
+- `GET /` - Main dashboard (requires auth)
+- `GET /api/status` - Job and vehicle status
+- `GET /api/vehicles` - Vehicle data
+- `GET /api/vehicles/export` - Export vehicle data
+
+### Job Control
+- `POST /api/scrape/carmax` - Start CarMax scraping
+- `POST /api/scrape/vauto` - Start vAuto enrichment
+- `POST /api/scrape/complete` - Start complete workflow
+- `POST /api/cancel/:jobType` - Cancel running job
+
+## 🔄 Workflow Options
+node test-scraper.js
 ```
 
 ## How It Works

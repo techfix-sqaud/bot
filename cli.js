@@ -1,224 +1,170 @@
 #!/usr/bin/env node
 
+/**
+ * CLI interface for CarMax-vAuto Vehicle Enrichment Bot
+ * Production-ready automation tool
+ */
+
+const { program } = require("commander");
+const { loadJSON } = require("./src/utils");
 require("dotenv").config();
-const VehicleDataOrchestrator = require("./src/orchestrator");
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const options = {
-  skipScraping: false,
-  scrapingMode: "auctions", // "auctions" or "mylist"
-  exportFormat: "xlsx",
-  exportFilename: null,
-  user: null,
-  command: "workflow",
-};
+// Import scrapers
+const enrichVehiclesWithVAuto = require("./src/carmaxVautoScraper");
 
-// Parse arguments
-for (let i = 0; i < args.length; i++) {
-  switch (args[i]) {
-    case "--skip-scraping":
-    case "-s":
-      options.skipScraping = true;
-      break;
-    case "--scraping-mode":
-    case "-m":
-      if (i + 1 < args.length) {
-        const mode = args[++i].toLowerCase();
-        if (mode === "mylist" || mode === "my-list") {
-          options.scrapingMode = "mylist";
-        } else if (mode === "auctions" || mode === "all") {
-          options.scrapingMode = "auctions";
-        } else {
-          console.error(
-            `❌ Invalid scraping mode: ${mode}. Use 'auctions' or 'mylist'`
-          );
-          process.exit(1);
-        }
+program
+  .name("carmax-vauto-bot")
+  .description("CarMax to vAuto Vehicle Enrichment Bot")
+  .version("1.0.0");
+
+// CarMax scraping command
+program
+  .command("carmax")
+  .description("Scrape vehicle data from CarMax")
+  .option(
+    "-m, --mode <mode>",
+    'scraping mode: "auctions" or "mylist"',
+    "mylist"
+  )
+  .action(async (options) => {
+    console.log(`🚀 Starting CarMax scraping in ${options.mode} mode...`);
+
+    try {
+      if (options.mode === "mylist") {
+        const { scrapeMyList } = require("./src/carmaxScraper");
+        await scrapeMyList();
+      } else if (options.mode === "auctions") {
+        const carmaxScraper = require("./src/carmaxScraper");
+        await carmaxScraper.scrapeAuctions();
+      } else {
+        console.error('❌ Invalid mode. Use "auctions" or "mylist"');
+        process.exit(1);
       }
-      break;
-    case "--format":
-    case "-f":
-      if (i + 1 < args.length) {
-        options.exportFormat = args[++i].toLowerCase();
-      }
-      break;
-    case "--output":
-    case "-o":
-      if (i + 1 < args.length) {
-        options.exportFilename = args[++i];
-      }
-      break;
-    case "--vins":
-    case "-v":
-      if (i + 1 < args.length) {
-        const vins = args[++i].split(",").map((vin) => vin.trim());
-        options.user = {
-          email: "cli-user@example.com",
-          vins: vins,
-        };
-      }
-      break;
-    case "list":
-      options.command = "list";
-      break;
-    case "export":
-      options.command = "export";
-      break;
-    case "annotate":
-      options.command = "annotate";
-      break;
-    case "help":
-    case "--help":
-    case "-h":
-      showHelp();
-      process.exit(0);
-      break;
-  }
-}
 
-function showHelp() {
-  console.log(`
-🚗 Vehicle Data Processing CLI
-
-USAGE:
-  node cli.js [command] [options]
-
-COMMANDS:
-  (default)    Run complete workflow (scrape + annotate + export)
-  list         List available data files
-  export       Export existing data to different format
-  annotate     Run vAuto annotation only
-
-OPTIONS:
-  -s, --skip-scraping     Skip CarMax scraping, use existing data
-  -m, --scraping-mode MODE  Scraping mode: 'auctions' or 'mylist' (default: auctions)
-  -f, --format FORMAT     Export format: xlsx, csv, xls, json (default: xlsx)
-  -o, --output FILE       Output filename (auto-generated if not specified)
-  -v, --vins VINS         Comma-separated VINs for vAuto annotation
-  -h, --help              Show this help message
-
-EXAMPLES:
-  # Complete workflow with Excel export (all auctions)
-  node cli.js
-
-  # Scrape My List only and export as Excel
-  node cli.js --scraping-mode mylist
-
-  # Skip scraping, export existing data as CSV
-  node cli.js --skip-scraping --format csv
-
-  # Annotate specific VINs and export as Excel
-  node cli.js --vins "1HGBH41JXMN109186,2HGFA16506H000001" --format xlsx
-
-  # List available data files
-  node cli.js list
-
-  # Export latest data as CSV
-  node cli.js export --format csv
-
-  # Run annotation only
-  node cli.js annotate --vins "1HGBH41JXMN109186"
-
-SUPPORTED FORMATS:
-  xlsx  - Excel 2007+ format (default)
-  xls   - Excel 97-2003 format
-  csv   - Comma-separated values
-  json  - JSON format
-`);
-}
-
-async function main() {
-  try {
-    const orchestrator = new VehicleDataOrchestrator();
-
-    console.log("🚗 Vehicle Data Processing CLI");
-    console.log("=".repeat(40));
-
-    switch (options.command) {
-      case "list":
-        orchestrator.listAvailableFiles();
-        break;
-
-      case "export":
-        if (!["xlsx", "csv", "xls", "json"].includes(options.exportFormat)) {
-          console.error(`❌ Unsupported format: ${options.exportFormat}`);
-          console.log("Supported formats: xlsx, csv, xls, json");
-          process.exit(1);
-        }
-        const exportResults = await orchestrator.exportExistingData(
-          null,
-          options.exportFormat,
-          "vehicles_export"
-        );
-        console.log(`✅ Export completed: ${exportResults.exportFile}`);
-        break;
-
-      case "annotate":
-        if (!options.user || !options.user.vins.length) {
-          console.error("❌ VINs required for annotation. Use --vins option.");
-          process.exit(1);
-        }
-        const annotationResults = await orchestrator.runAnnotationOnly(
-          options.user,
-          {
-            exportFormat: options.exportFormat,
-            exportFilename: options.exportFilename,
-          }
-        );
-        console.log("✅ Annotation completed!");
-        console.log(`📁 JSON: ${annotationResults.jsonFile}`);
-        if (annotationResults.exportFile) {
-          console.log(`📊 Export: ${annotationResults.exportFile}`);
-        }
-        break;
-
-      default: // workflow
-        if (!["xlsx", "csv", "xls", "json"].includes(options.exportFormat)) {
-          console.error(`❌ Unsupported format: ${options.exportFormat}`);
-          console.log("Supported formats: xlsx, csv, xls, json");
-          process.exit(1);
-        }
-
-        console.log("📋 Configuration:");
-        console.log(`📊 Export format: ${options.exportFormat.toUpperCase()}`);
-        console.log(`🔄 Skip scraping: ${options.skipScraping ? "Yes" : "No"}`);
-        console.log(
-          `🎯 Scraping mode: ${
-            options.scrapingMode === "mylist" ? "My List" : "All Auctions"
-          }`
-        );
-        console.log(
-          `👤 Process vAuto: ${
-            options.user ? "Yes (" + options.user.vins.length + " VINs)" : "No"
-          }`
-        );
-
-        const results = await orchestrator.runCompleteWorkflow(options);
-
-        console.log("\n✅ Processing completed!");
-        console.log("\n📄 Files created:");
-        console.log(`📁 JSON: ${results.jsonFile}`);
-        if (results.exportFile) {
-          console.log(`📊 Export: ${results.exportFile}`);
-        }
-
-        if (results.summary) {
-          console.log(
-            `\n📊 Summary: ${results.summary.successful}/${results.summary.total} successful`
-          );
-        }
-        break;
+      console.log("✅ CarMax scraping completed!");
+    } catch (error) {
+      console.error("❌ CarMax scraping failed:", error.message);
+      process.exit(1);
     }
-  } catch (error) {
-    console.error("❌ Error:", error.message);
-    process.exit(1);
-  }
-}
+  });
 
-// Only run if this file is executed directly
-if (require.main === module) {
-  main();
-}
+// vAuto enrichment command
+program
+  .command("vauto")
+  .description("Enrich existing vehicles with vAuto evaluation data")
+  .action(async () => {
+    console.log("🚀 Starting vAuto enrichment...");
 
-module.exports = { main, showHelp };
+    try {
+      // Check if vehicles exist
+      const vehicles = loadJSON("./data/vehicles.json");
+      if (vehicles.length === 0) {
+        console.error(
+          "❌ No vehicles found. Please run CarMax scraping first."
+        );
+        console.log("💡 Try: npm run carmax");
+        process.exit(1);
+      }
+
+      console.log(`📋 Found ${vehicles.length} vehicles to process`);
+      await enrichVehiclesWithVAuto();
+      console.log("✅ vAuto enrichment completed!");
+    } catch (error) {
+      console.error("❌ vAuto enrichment failed:", error.message);
+      process.exit(1);
+    }
+  });
+
+// Complete workflow command
+program
+  .command("complete")
+  .description("Run complete workflow: CarMax scraping + vAuto enrichment")
+  .option(
+    "-m, --mode <mode>",
+    'CarMax scraping mode: "auctions" or "mylist"',
+    "mylist"
+  )
+  .action(async (options) => {
+    console.log(`🚀 Starting complete workflow with ${options.mode} mode...`);
+
+    try {
+      // Step 1: CarMax scraping
+      console.log("\n📦 Step 1: CarMax Scraping");
+      if (options.mode === "mylist") {
+        const { scrapeMyList } = require("./src/carmaxScraper");
+        await scrapeMyList();
+      } else {
+        const carmaxScraper = require("./src/carmaxScraper");
+        await carmaxScraper.scrapeAuctions();
+      }
+
+      // Step 2: vAuto enrichment
+      console.log("\n💎 Step 2: vAuto Enrichment");
+      await enrichVehiclesWithVAuto();
+
+      console.log("\n✅ Complete workflow finished successfully!");
+
+      // Show summary
+      const vehicles = loadJSON("./data/vehicles.json");
+      const enrichedCount = vehicles.filter((v) => v.vautoData).length;
+      console.log(`\n📊 Summary:`);
+      console.log(`   Total vehicles: ${vehicles.length}`);
+      console.log(`   Enriched with vAuto: ${enrichedCount}`);
+      console.log(`   Pending enrichment: ${vehicles.length - enrichedCount}`);
+    } catch (error) {
+      console.error("❌ Complete workflow failed:", error.message);
+      process.exit(1);
+    }
+  });
+
+// Status command
+program
+  .command("status")
+  .description("Show current status and vehicle count")
+  .action(() => {
+    console.log("📊 Current Status:");
+
+    try {
+      const vehicles = loadJSON("./data/vehicles.json");
+      const enrichedCount = vehicles.filter((v) => v.vautoData).length;
+      const pendingCount = vehicles.length - enrichedCount;
+
+      console.log(`\n📋 Vehicle Data:`);
+      console.log(`   Total vehicles: ${vehicles.length}`);
+      console.log(`   Enriched with vAuto: ${enrichedCount}`);
+      console.log(`   Pending enrichment: ${pendingCount}`);
+
+      if (vehicles.length > 0) {
+        const latestScrape = vehicles.reduce((latest, v) => {
+          const vehicleDate = new Date(v.scrapedAt || 0);
+          return vehicleDate > latest ? vehicleDate : latest;
+        }, new Date(0));
+
+        console.log(`   Latest scrape: ${latestScrape.toLocaleString()}`);
+      }
+
+      // Check environment variables
+      console.log(`\n🔐 Environment:`);
+      console.log(
+        `   vAuto credentials: ${process.env.VAUTO_USERNAME ? "✅" : "❌"}`
+      );
+      console.log(
+        `   CarMax credentials: ${process.env.CARMAX_EMAIL ? "✅" : "❌"}`
+      );
+    } catch (error) {
+      console.log("   No vehicle data found");
+    }
+  });
+
+// Parse CLI arguments
+program.parse();
+
+// Show help if no command provided
+if (process.argv.length <= 2) {
+  console.log("🚀 CarMax-vAuto Vehicle Enrichment Bot");
+  console.log("\nQuick Start:");
+  console.log("  npm run mylist     # Scrape My List");
+  console.log("  npm run auctions   # Scrape All Auctions");
+  console.log("  npm run scrape     # Complete workflow");
+  console.log("\nFor more options run: node cli.js --help");
+}
